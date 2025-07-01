@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Línea de Tiempo Interactiva Multitemática | Derechos Pueblos Indígenas en Colombia</title>
+    <title>Línea de Tiempo Analítica e Interactiva | Derechos Pueblos Indígenas en Colombia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
         }
-        /* Estilo para la línea de tiempo vertical principal */
+        .timeline-wrapper {
+            position: relative;
+        }
         .timeline-container::before {
             content: '';
             position: absolute;
@@ -19,15 +21,14 @@
             left: 18px;
             height: 100%;
             width: 4px;
-            background: #cbd5e1;
+            background: #e2e8f0;
             z-index: 1;
         }
         .timeline-item {
             position: relative;
             padding-left: 50px;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
-        /* Círculo de evento en la línea de tiempo */
         .timeline-item::before {
             content: '';
             position: absolute;
@@ -37,9 +38,8 @@
             height: 20px;
             border-radius: 50%;
             background: white;
-            /* El color se aplicará dinámicamente con una variable CSS */
             border: 4px solid var(--timeline-color, #3b82f6);
-            z-index: 2;
+            z-index: 3;
             transition: transform 0.2s ease-in-out;
         }
          .timeline-item:hover::before {
@@ -51,11 +51,9 @@
             border: 2px solid transparent;
         }
         .timeline-card.selected {
-            /* El color del borde se aplicará dinámicamente */
             border-color: var(--timeline-color, #3b82f6);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 10px 15px -3px var(--shadow-color, rgba(59, 130, 246, 0.2)), 0 4px 6px -2px var(--shadow-color, rgba(59, 130, 246, 0.1));
         }
-        /* Estilos para los filtros de temas */
         .filter-checkbox:checked + label {
             opacity: 1;
             font-weight: 600;
@@ -64,9 +62,27 @@
             opacity: 0.7;
             transition: opacity 0.2s ease-in-out;
         }
+        #connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .connection-line {
+            stroke-width: 2;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .connection-line.highlighted {
+            stroke-width: 4;
+            opacity: 1;
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
+<body class="bg-slate-50 text-slate-800">
 
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
@@ -74,18 +90,40 @@
             <p class="text-lg md:text-xl text-slate-600 mt-2">Línea de tiempo multitemática (1991 - 2025)</p>
         </header>
 
-        <!-- Contenedor de Filtros -->
-        <div id="filters-container" class="bg-white p-4 rounded-xl shadow-md mb-8">
-            <h3 class="text-lg font-bold text-slate-800 mb-3">Filtrar por Tema Principal:</h3>
-            <div id="theme-filters" class="flex flex-wrap gap-x-6 gap-y-3">
-                <!-- Los filtros se insertarán aquí dinámicamente -->
+        <!-- Contenedor de Controles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+             <!-- Contenedor de Filtros -->
+            <div class="bg-white p-4 rounded-xl shadow-md">
+                <h3 class="text-lg font-bold text-slate-800 mb-3">Controles</h3>
+                <div class="space-y-4">
+                    <input type="search" id="search-input" placeholder="Buscar por palabra clave..." class="w-full p-2 border border-slate-300 rounded-md">
+                    <div id="theme-filters" class="flex flex-wrap gap-x-6 gap-y-3">
+                        <!-- Los filtros se insertarán aquí dinámicamente -->
+                    </div>
+                     <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-slate-700">Mostrar líneas de conexión</span>
+                        <label for="toggle-connections" class="inline-flex relative items-center cursor-pointer">
+                            <input type="checkbox" value="" id="toggle-connections" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+             <!-- Panel de Análisis -->
+            <div id="analytics-container" class="bg-white p-4 rounded-xl shadow-md">
+                 <h3 class="text-lg font-bold text-slate-800 mb-3">Resumen Analítico</h3>
+                 <div id="analytics-content" class="text-sm space-y-2">
+                     <!-- El contenido del análisis se insertará aquí -->
+                 </div>
             </div>
         </div>
 
+
         <div class="flex flex-col lg:flex-row gap-8">
             <!-- Columna de la Línea de Tiempo -->
-            <div class="lg:w-1/3">
-                <div class="relative timeline-container p-4">
+            <div class="lg:w-1/3 timeline-wrapper">
+                <svg id="connections-svg"></svg>
+                <div class="relative timeline-container">
                     <div id="timeline">
                         <!-- Los eventos de la línea de tiempo se insertarán aquí dinámicamente -->
                     </div>
@@ -98,7 +136,7 @@
                     <div id="placeholder" class="text-center flex flex-col justify-center items-center h-full">
                         <svg class="w-16 h-16 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                         <h2 class="text-2xl font-semibold text-slate-600">Selecciona un evento</h2>
-                        <p class="text-slate-500 mt-1">Haz clic en un hito de la línea de tiempo para ver sus detalles.</p>
+                        <p class="text-slate-500 mt-1">Haz clic en un hito de la línea de tiempo para ver sus detalles y conexiones.</p>
                     </div>
                     <div id="event-details" class="hidden">
                         <span id="details-theme" class="text-sm font-bold uppercase px-3 py-1 rounded-full text-white mb-4 inline-block"></span>
@@ -130,1166 +168,97 @@
     </div>
 
     <script id="timeline-data">
-        // FIX: Embedded JSON data directly into the HTML to avoid fetch errors in sandboxed environments.
         const timelineDataObject = {
           "eventos": [
-            {
-              "id": "N-1",
-              "fecha": "1991-03-06",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Ley 21 de 1991 (Convenio 169 de la OIT)",
-              "descripcion": "Aprueba el Convenio 169 de la OIT sobre pueblos indígenas y tribales, incorporándolo al ordenamiento interno. Integra estándares internacionales como la consulta previa y la protección de tierras indígenas al bloque de constitucionalidad colombiano.",
-              "actoresClave": "Congreso de la República",
-              "ambito": "Colombia",
-              "fuente": "Ley 21 de 1991",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-2",
-              "fecha": "1991-07-04",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Constitución Política de Colombia de 1991",
-              "descripcion": "Establece a Colombia como un Estado pluriétnico y multicultural, reconociendo la autonomía de los pueblos indígenas, su jurisdicción especial y la propiedad colectiva de sus tierras.",
-              "actoresClave": "Asamblea Nacional Constituyente",
-              "ambito": "Colombia",
-              "fuente": "Constitución Política de Colombia de 1991",
-              "conexiones": ["C-1"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-1",
-              "fecha": "1991-07-04",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Promulgación de la Constitución Política de 1991",
-              "descripcion": "La nueva Constitución de Colombia reconoce al país como nación pluriétnica y multicultural, garantizando derechos colectivos a los pueblos indígenas (idioma, autonomía territorial, justicia propia, consulta previa), marcando un cambio histórico en su representación legal.",
-              "actoresClave": "Asamblea Nacional Constituyente, Medios de comunicación",
-              "ambito": "Colombia",
-              "fuente": "Diversos medios de prensa. (1991). Cobertura de la promulgación de la Constitución.",
-              "conexiones": ["N-2"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-2",
-              "fecha": "1992-10-12",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "500 años de Resistencia Indígena",
-              "descripcion": "Movilizaciones y pronunciamientos indígenas en Colombia y toda América rechazan la celebración oficial del 'Encuentro de Dos Mundos'. En medios se visibiliza la consigna de '500 años de resistencia' para reivindicar la memoria y denunciar la colonización.",
-              "actoresClave": "Organizaciones indígenas, Movimientos sociales",
-              "ambito": "Latinoamérica",
-              "fuente": "Cobertura mediática de protestas. (1992).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-3",
-              "fecha": "1993-12-22",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Ley 99 de 1993 (Ley General Ambiental)",
-              "descripcion": "Crea el Ministerio del Medio Ambiente y regula la gestión ambiental; su Artículo 76 exige la consulta previa a comunidades indígenas y negras antes de autorizar proyectos de explotación de recursos naturales en sus territorios.",
-              "actoresClave": "Congreso de la República",
-              "ambito": "Colombia",
-              "fuente": "Ley 99 de 1993",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "N-4",
-              "fecha": "1994-08-03",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Ley 160 de 1994 (Sistema Nacional de Reforma Agraria)",
-              "descripcion": "Establece el sistema de reforma agraria; el Capítulo XIV encomienda al Estado estudiar, titular y ampliar resguardos indígenas, dotando de tierras a comunidades sin título y saneando territorios ocupados por terceros.",
-              "actoresClave": "Congreso de la República",
-              "ambito": "Colombia",
-              "fuente": "Ley 160 de 1994",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "N-5",
-              "fecha": "1995-12-07",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 2164 de 1995 (Reglamentación de resguardos)",
-              "descripcion": "Reglamenta parcialmente la Ley 160/94 en materia de dotación y titulación de tierras a comunidades indígenas para constituir, reestructurar, ampliar y sanear resguardos.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 2164 de 1995",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-3",
-              "fecha": "1996-07-05",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Toma de la sede de la Conferencia Episcopal en Bogotá",
-              "descripcion": "Unos 3.000 indígenas ocuparon pacíficamente durante 43 días la sede de la Conferencia Episcopal de Colombia, exigiendo cumplimiento de derechos territoriales y el fin de la violencia. La protesta obtuvo amplia cobertura nacional.",
-              "actoresClave": "Pueblos indígenas movilizados",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa. (1996).",
-              "conexiones": ["N-6", "C-4"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-6",
-              "fecha": "1996-08-08",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 1397 de 1996 (Creación de la CNTI y MPC)",
-              "descripcion": "Crea la Comisión Nacional de Territorios Indígenas (CNTI) y la Mesa Permanente de Concertación (MPC) con Pueblos Indígenas, para la concertación de políticas y la coordinación Estado-pueblos indígenas.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 1397 de 1996",
-              "conexiones": ["C-3", "C-4"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-4",
-              "fecha": "1996-08-08",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Creación de la Mesa Permanente de Concertación",
-              "descripcion": "Tras la protesta de 1996, el Gobierno crea por decreto la Mesa Permanente de Concertación entre organizaciones indígenas y el Estado. Este espacio institucionalizado de diálogo es difundido como un avance en la relación Estado-pueblos indígenas.",
-              "actoresClave": "Gobierno de Colombia, Organizaciones Indígenas",
-              "ambito": "Colombia",
-              "fuente": "Decreto 1397 de 1996.",
-              "conexiones": ["C-3", "N-6"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-7",
-              "fecha": "1997-02-06",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia SU-039/97 (Caso U’wa - Consulta Previa)",
-              "descripcion": "La Corte falló a favor del pueblo U’wa, reconociendo que se vulneró su derecho fundamental a la consulta previa ante un proyecto petrolero y ordenando realizar la consulta antes de continuar con la explotación.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Sentencia SU-039 de 1997",
-              "conexiones": ["C-5"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-5",
-              "fecha": "1997-05-20",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Comunicación",
-              "titulo": "Caso U'wa: Internacionalización de la lucha contra OXY",
-              "descripcion": "La Nación U'wa lleva su batalla contra la petrolera Occidental al plano internacional: en 1997 presenta denuncia ante la CIDH y líderes U'wa realizan giras globales. La amenaza colectiva de suicidio para proteger su tierra obtiene amplio eco mediático mundial.",
-              "actoresClave": "Nación U'wa, CIDH, Occidental Petroleum",
-              "ambito": "Global",
-              "fuente": "Artículo de prensa internacional. (1997).",
-              "conexiones": ["N-7", "C-12", "N-22"],
-              "color": "#10B981"
-            },
-            {
-              "id": "N-8",
-              "fecha": "1998-07-10",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 1320 de 1998 (Consulta previa en recursos naturales)",
-              "descripcion": "Reglamenta la consulta previa con comunidades indígenas y negras para la explotación de recursos naturales en sus territorios, definiendo procedimientos y etapas para su realización.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 1320 de 1998",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-9",
-              "fecha": "2002-10-24",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia C-891/02 (Consulta en Código de Minas)",
-              "descripcion": "Al resolver una demanda contra el Código de Minas (Ley 685/2001), la Corte afirmó la obligación de consulta previa en la expedición de leyes que afecten directamente a comunidades indígenas, considerando viciada la ley por falta de consulta.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Sentencia C-891 de 2002",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-1",
-              "fecha": "2007-12-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Gobierno Propio",
-              "titulo": "VII Congreso Nacional de Pueblos Indígenas (ONIC)",
-              "descripcion": "Decisión histórica de transformar la ONIC en Autoridad Nacional de Gobierno Indígena. Mandato General Art.20-21 rompe con figura de ONG gremial y adopta un modelo de gobierno autónomo propio.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2007). Mandato General - VII Congreso Nacional de Pueblos Indígenas.",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-2",
-              "fecha": "2007-12-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Territorio",
-              "titulo": "Mandatos VII Congreso 2007 – Política Territorial Indígena",
-              "descripcion": "El VII Congreso denuncia el despojo territorial histórico, repudia el Estatuto de Desarrollo Rural y formula la Política Territorial Indígena Nacional, pasando de la resistencia a propuestas concretas.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Territorio).",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "M-3",
-              "fecha": "2007-12-15",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Justicia y Paz",
-              "titulo": "Mandatos VII Congreso 2007 – Neutralidad y Justicia Propia",
-              "descripcion": "El VII Congreso adopta una posición de neutralidad activa frente al conflicto armado colombiano y reafirma la jurisdicción especial indígena y la facultad de ejercer justicia propia en los territorios.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Paz y Justicia).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "M-4",
-              "fecha": "2007-12-15",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Salud y Educación",
-              "titulo": "Mandatos VII Congreso 2007 – Sistemas Propios de Salud",
-              "descripcion": "Plantea la visión inicial de un Sistema Indígena de Salud Propia e Intercultural (SISPI), adaptado a la cultura ancestral y en rechazo al modelo estatal.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Educación y Salud).",
-              "conexiones": ["M-9"],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "M-4b",
-              "fecha": "2007-12-15",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Salud y Educación",
-              "titulo": "Mandatos VII Congreso 2007 – Sistemas Propios de Educación",
-              "descripcion": "Plantea la visión inicial de un Sistema Educativo Indígena Propio (SEIP), adaptado a la cultura ancestral y en rechazo al modelo estatal.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Educación y Salud).",
-              "conexiones": ["M-9"],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "M-5",
-              "fecha": "2007-12-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Mujer y Juventud",
-              "titulo": "Mandatos VII Congreso 2007 – Creación Consejería Mujer, Familia y Generación",
-              "descripcion": "Se institucionaliza la perspectiva de género y generacional al crear la Consejería de Mujer, Familia y Generación (MFG) como una de las nueve consejerías del Consejo Mayor de Gobierno.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Mujer, Familia y Generación).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-10",
-              "fecha": "2008-01-29",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia C-030/08 (Ley Forestal Inexequible)",
-              "descripcion": "Declara inexequible la Ley 1021 de 2006 (Ley General Forestal) por haberse expedido sin consulta previa a comunidades indígenas y afrodescendientes, dado que dicha ley afectaba sus derechos territoriales.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Sentencia C-030 de 2008",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-6",
-              "fecha": "2008-10-12",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Minga Indígena Nacional (Protestas masivas de 2008)",
-              "descripcion": "Más de 10.000 indígenas marchan desde el Cauca hasta Cali en 2008, exigiendo territorio, cumplimiento de acuerdos y fin de la violencia. La 'Minga de Resistencia' recibe gran cobertura mediática nacional.",
-              "actoresClave": "Movimiento indígena",
-              "ambito": "Colombia",
-              "fuente": "Artículo de prensa / Cobertura TV. (2008).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-11",
-              "fecha": "2009-01-26",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Normatividad",
-              "titulo": "Auto 004 de 2009 (Pueblos Indígenas en Riesgo de Extinción)",
-              "descripcion": "En el marco del estado de cosas inconstitucional por desplazamiento (Sentencia T-025/04), se identifican 34 pueblos indígenas en alto riesgo de exterminio físico y cultural por el conflicto armado.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Auto 004 de 2009",
-              "conexiones": ["C-7", "C-11"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "C-7",
-              "fecha": "2009-01-26",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Corte Constitucional alerta sobre riesgo de exterminio indígena",
-              "descripcion": "La Corte Constitucional emite el Auto 004/2009 identificando 34 pueblos indígenas en peligro de extinción física y cultural por el conflicto armado. Los medios amplifican la alarma.",
-              "actoresClave": "Corte Constitucional, Medios de comunicación",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Informe judicial. (2009).",
-              "conexiones": ["N-11", "C-11"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-12",
-              "fecha": "2009-03-11",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia C-175/09 (Estatuto de Desarrollo Rural Inexequible)",
-              "descripcion": "Declara inexequible la Ley 1152 de 2007 (nuevo Estatuto de Desarrollo Rural) por falta de consulta previa a pueblos indígenas y comunidades afrodescendientes en su trámite legislativo.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Sentencia C-175 de 2009",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-8",
-              "fecha": "2010-01-25",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Comunicación",
-              "titulo": "Ley 1381 de 2010 (Ley de Lenguas Nativas)",
-              "descripcion": "Entra en vigencia la Ley de Lenguas Nativas, que protege y promueve los idiomas indígenas de Colombia. La prensa nacional destaca este logro cultural y lingüístico.",
-              "actoresClave": "Congreso de la República",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Ley. (2010).",
-              "conexiones": [],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "N-13",
-              "fecha": "2011-06-28",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Ley Orgánica 1454 de 2011 (Ordenamiento Territorial - LOOT)",
-              "descripcion": "Expide la Ley Orgánica de Ordenamiento Territorial. Sin embargo, no desarrolló a cabalidad lo dispuesto en el artículo 329 de la Constitución sobre Entidades Territoriales Indígenas.",
-              "actoresClave": "Congreso de la República",
-              "ambito": "Colombia",
-              "fuente": "Ley 1454 de 2011",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-14",
-              "fecha": "2011-12-09",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Normatividad",
-              "titulo": "Decreto Ley 4633 de 2011 (Víctimas Indígenas)",
-              "descripcion": "Establece medidas de asistencia, atención, reparación integral y restitución de derechos territoriales para las comunidades indígenas víctimas del conflicto armado, reconociendo al 'territorio' como víctima colectiva.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto Ley 4633 de 2011",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "M-6",
-              "fecha": "2012-08-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Gobierno Propio",
-              "titulo": "VIII Congreso Nacional de Pueblos Indígenas (2012)",
-              "descripcion": "El VIII Congreso ratifica y profundiza la transformación institucional. Declara a la ONIC como 'entidad autónoma pública de carácter especial en el Estado Social de Derecho'.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional de Pueblos Indígenas.",
-              "conexiones": ["M-1"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-7",
-              "fecha": "2012-08-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Territorio",
-              "titulo": "Mandatos VIII Congreso 2012 – Defensa del Territorio vs. Modelo Estatal",
-              "descripcion": "El VIII Congreso profundiza la defensa territorial, vinculando el modelo de desarrollo estatal con violaciones de derechos. Se ordena la expulsión de todas las empresas que atenten contra los territorios.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Territorio y Recursos Naturales).",
-              "conexiones": ["M-2"],
-              "color": "#10B981"
-            },
-            {
-              "id": "M-8",
-              "fecha": "2012-08-15",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Justicia y Paz",
-              "titulo": "Mandatos VIII Congreso 2012 – Propuesta de Paz y Justicia Propia",
-              "descripcion": "El VIII Congreso consagra un Título de 'Propuesta de Paz de los Pueblos Indígenas', exigiendo participación directa en las negociaciones de paz. Paralelamente, refuerza la justicia indígena.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Paz y Justicia).",
-              "conexiones": ["M-3", "M-13"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "M-9",
-              "fecha": "2012-08-15",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Salud y Educación",
-              "titulo": "Mandatos VIII Congreso 2012 – Conceptualización del SISPI",
-              "descripcion": "El VIII Congreso detalla los componentes del SISPI (estructura, financiamiento, modelos de atención) y traza la hoja de ruta para su consolidación. Es la primera formulación integral del SISPI.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Educación Propia y Salud Propia).",
-              "conexiones": ["M-4", "M-19"],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "M-9b",
-              "fecha": "2012-08-15",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Salud y Educación",
-              "titulo": "Mandatos VIII Congreso 2012 – Conceptualización del SEIP",
-              "descripcion": "El VIII Congreso detalla los componentes del SEIP (estructura, financiamiento, modelos de atención) y traza la hoja de ruta para su consolidación. Es la primera formulación integral del SEIP.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Educación Propia y Salud Propia).",
-              "conexiones": ["M-4b", "M-19"],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "M-10",
-              "fecha": "2012-08-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Mujer y Juventud",
-              "titulo": "Mandatos VIII Congreso 2012 – Políticas de Mujer, Niñez, Juventud y Mayores",
-              "descripcion": "Se ordena formular una Política Propia Indígena para Mujeres; una política para mayores/sabios; y una política para jóvenes, niñas y niños. Se crea la Coordinación Nacional de Juventudes.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Mujer, Familia y Generación).",
-              "conexiones": ["M-5"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-11",
-              "fecha": "2012-08-22",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Paz y Conflicto",
-              "titulo": "Pronunciamiento ONIC sobre conflicto en el Cauca (2012)",
-              "descripcion": "Tras graves enfrentamientos en el norte del Cauca, la ONIC emite un comunicado reafirmando su neutralidad y exigiendo la desmilitarización de territorios indígenas.",
-              "actoresClave": "ONIC",
-              "ambito": "Externo",
-              "fuente": "ONIC. (2012, 22 de agosto). Pronunciamiento: frente a la profundización del conflicto armado en territorios indígenas del Cauca.",
-              "conexiones": ["M-3"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-16",
-              "fecha": "2013-01-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia T-009/13 (Titulación Resguardo Sikuani)",
-              "descripcion": "Ordena a INCODER titular sin más demoras el resguardo indígena Sikuani de Arizona-Cupey, tras hallar vulnerado el derecho al debido proceso y a la propiedad colectiva por la prolongada dilación en la titulación.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Sentencia T-009 de 2013",
-              "conexiones": ["C-9"],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-9",
-              "fecha": "2013-01-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Comunicación",
-              "titulo": "Sentencia T-009 de 2013 (Corte Constitucional)",
-              "descripcion": "La Corte Constitucional ratifica en la Sentencia T-009/13 el derecho a la propiedad colectiva y el debido proceso en la titulación de resguardos indígenas. ONIC difunde el fallo como un triunfo jurídico.",
-              "actoresClave": "Corte Constitucional, ONIC",
-              "ambito": "Colombia",
-              "fuente": "Artículo de prensa jurídica. (2013).",
-              "conexiones": ["N-16"],
-              "color": "#10B981"
-            },
-            {
-              "id": "N-15",
-              "fecha": "2013-12-20",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 2613 de 2013 (Protocolo de Consulta Interinstitucional)",
-              "descripcion": "Adopta el Protocolo de Coordinación Interinstitucional para la Consulta Previa, con el fin de articular a las entidades del Estado en los procesos de consulta con comunidades étnicas.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 2613 de 2013",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-17",
-              "fecha": "2014-10-07",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 1953 de 2014 (Régimen Territorial Indígena Transitorio)",
-              "descripcion": "Crea un régimen especial de carácter transitorio para poner en funcionamiento las entidades territoriales indígenas, permitiendo administrar asuntos propios (salud, educación, etc.) mientras se expide la ley orgánica respectiva.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 1953 de 2014",
-              "conexiones": ["C-10"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-10",
-              "fecha": "2014-12-05",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Decreto 1953 de 2014 (Régimen Especial Indígena)",
-              "descripcion": "El Gobierno expide el Decreto 1953/2014 creando un régimen especial para la gestión de asuntos indígenas. Medios nacionales informan sobre este avance en la autonomía indígena.",
-              "actoresClave": "Gobierno de Colombia, Organizaciones Indígenas",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Decreto oficial. (2014).",
-              "conexiones": ["N-17"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-11",
-              "fecha": "2014-12-10",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Alerta sobre desaparición de pueblos indígenas",
-              "descripcion": "La ONIC denuncia públicamente que más de 30 pueblos indígenas enfrentan riesgo de desaparición física y cultural. Esta advertencia, replicada en prensa y por ONG, enmarca la crisis humanitaria indígena.",
-              "actoresClave": "ONIC, Prensa, ONGs",
-              "ambito": "Colombia",
-              "fuente": "Comunicado ONIC / Noticia de prensa. (2014).",
-              "conexiones": ["N-11", "C-7"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-18",
-              "fecha": "2014-12-11",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 2333 de 2014 (Protección de Tierras Ancestrales)",
-              "descripcion": "Establece mecanismos para la protección efectiva y seguridad jurídica de las tierras y territorios ocupados o poseídos ancestral y tradicionalmente por pueblos indígenas, mientras se tramita su titulación.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 2333 de 2014",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "N-19",
-              "fecha": "2014-12-23",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 2719 de 2014 (Ejecución Directa de SGP)",
-              "descripcion": "Define parámetros para que resguardos indígenas y sus asociaciones acrediten experiencia, habilitándolos a ejecutar directamente los recursos del Sistema General de Participaciones (SGP).",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 2719 de 2014",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-12",
-              "fecha": "2015-10-16",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Comunicación",
-              "titulo": "Admisibilidad del caso U'wa ante la CIDH",
-              "descripcion": "La Comisión Interamericana de DD.HH. declara admisible la denuncia del pueblo U'wa contra Colombia, por no proteger su territorio frente a proyectos extractivos. Organizaciones celebran este paso legal.",
-              "actoresClave": "CIDH, Pueblo U'wa, ONIC",
-              "ambito": "Latinoamérica",
-              "fuente": "Noticia de prensa / Comunicado ONIC. (2015).",
-              "conexiones": ["C-5", "N-22"],
-              "color": "#10B981"
-            },
-            {
-              "id": "M-12",
-              "fecha": "2016-09-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Gobierno Propio",
-              "titulo": "IX Congreso Nacional de Pueblos Indígenas (2016) – Mandato de Ley Propia",
-              "descripcion": "El IX Congreso mandata la elaboración de una Ley de Gobierno Propio escrita que consolide la estructura y normas internas de la ONIC, orientando a la organización para un escenario de posacuerdo.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2016). Mandatos del IX Congreso Nacional de Pueblos Indígenas.",
-              "conexiones": ["M-6", "C-13"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-13",
-              "fecha": "2016-08-24",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Paz y Derechos",
-              "titulo": "Inclusión del Capítulo Étnico en el Acuerdo Final de Paz (2016)",
-              "descripcion": "El Acuerdo Final de Paz Gobierno–FARC incorpora un Capítulo Étnico específico. Este capítulo reconoce la desproporcional afectación del conflicto y garantiza derechos en la implementación de la paz.",
-              "actoresClave": "Gobierno de Colombia, FARC-EP, ONIC, CONPI, AISO",
-              "ambito": "Externo",
-              "fuente": "Gobierno de Colombia & FARC-EP. (2016). “Acuerdo Final para la Terminación del Conflicto…” (Capítulo Étnico).",
-              "conexiones": ["M-8"],
-              "color": "#EF4444"
-            },
-            {
-              "id": "C-13",
-              "fecha": "2016-07-20",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Mandato para la Ley de Gobierno Propio (IX Congreso ONIC)",
-              "descripcion": "El IX Congreso de la ONIC (2016) aprueba el mandato de formular una Ley de Gobierno Propio indígena. Inicia un proceso interno de reestructuración y autogobierno.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Boletín ONIC / Nota en blogs. (2016).",
-              "conexiones": ["M-12"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-14",
-              "fecha": "2017-11-01",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "ONIC llama a 'rodear la paz' ante repunte de violencia",
-              "descripcion": "Ante el repunte de asesinatos de líderes tras el Acuerdo de Paz, la ONIC hace en 2017 un llamado público a 'rodear la paz', instando al gobierno y la sociedad a proteger la vida.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Comunicado ONIC / Noticia de prensa. (2017).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-20",
-              "fecha": "2018-03-06",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia SU-123/18 (Alcance del Derecho al Territorio)",
-              "descripcion": "Decisión de unificación que reiteró que el 'territorio' para efectos de los derechos de los pueblos indígenas abarca no solo las áreas tituladas como resguardos, sino también las zonas de uso tradicional y ocupación ancestral.",
-              "actoresClave": "Corte Constitucional",
-              "ambito": "Colombia",
-              "fuente": "Sentencia SU-123 de 2018",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "N-21",
-              "fecha": "2018-07-13",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 1232 de 2018 (Protección PIACI)",
-              "descripcion": "Establece medidas especiales de prevención y protección para los Pueblos Indígenas en Aislamiento Voluntario o en estado de aislamiento (PIACI), garantizando la intangibilidad de sus territorios.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 1232 de 2018",
-              "conexiones": [],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-15",
-              "fecha": "2018-09-05",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Denuncia de reclutamiento forzado de menores indígenas",
-              "descripcion": "La ONIC denuncia en septiembre de 2018 que el Ejército reclutó de forma irregular a niños y jóvenes indígenas. La grave acusación aparece en medios nacionales.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Denuncia pública. (2018).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "C-16",
-              "fecha": "2018-12-01",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Aprobación de la Ley de Gobierno Propio de la ONIC",
-              "descripcion": "La ONIC adopta formalmente en 2018 su Ley de Gobierno Propio, que codifica su estructura de autoridad y participación (incluyendo paridad de género).",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Boletín ONIC / Artículo académico. (2018).",
-              "conexiones": ["M-14"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-17",
-              "fecha": "2019-03-10",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Minga Social del Suroccidente (protesta indígena 2019)",
-              "descripcion": "Comunidades indígenas bloquearon en marzo de 2019 la vía Panamericana exigiendo diálogo con el presidente Duque por sus derechos territoriales y el cumplimiento de acuerdos de paz.",
-              "actoresClave": "Movimiento Indígena",
-              "ambito": "Colombia",
-              "fuente": "Cobertura periodística nacional. (2019).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "C-18",
-              "fecha": "2019-07-08",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "III Congreso Internacional de Pueblos Indígenas de AL",
-              "descripcion": "Líderes de la ONIC participan en el III Congreso Internacional de Pueblos Indígenas de América Latina (2019), reforzando alianzas regionales.",
-              "actoresClave": "ONIC",
-              "ambito": "Latinoamérica",
-              "fuente": "Nota de prensa / Cobertura alternativa. (2019).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-19",
-              "fecha": "2019-08-27",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Informe '¿Cuántos somos, dónde vivimos y cómo estamos?' (ONIC)",
-              "descripcion": "La ONIC publica en 2019 el informe '¿Cuántos somos, dónde vivimos y cómo estamos?' con datos demográficos y sociales de los pueblos indígenas.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Informe técnico / Cobertura mediática. (2019).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-20",
-              "fecha": "2019-10-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Campaña #SoyGuardiaIndigena",
-              "descripcion": "La ONIC impulsa en 2019 la campaña digital #SoyGuardiaIndigena para visibilizar la Guardia Indígena como símbolo de resistencia. La etiqueta se vuelve tendencia en redes sociales.",
-              "actoresClave": "ONIC, Guardia Indígena",
-              "ambito": "Colombia",
-              "fuente": "Campaña en redes sociales. (2019).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-14",
-              "fecha": "2019-11-18",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Gobierno Propio",
-              "titulo": "Asamblea Nacional de Autoridades Indígenas – Ley de Gobierno Propio ONIC",
-              "descripcion": "En cumplimiento del mandato del IX Congreso, la Asamblea Nacional de Autoridades Indígenas aprueba la Ley de Gobierno Propio (LGP) de la ONIC. Esta Ley interna reemplaza los antiguos Estatutos.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC.",
-              "conexiones": ["M-12", "C-16"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-15",
-              "fecha": "2019-11-18",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Género y Juventud",
-              "titulo": "Ley de Gobierno Propio 2019 – Paridad de Género y Órganos de Mujer/Juventud",
-              "descripcion": "La Ley de Gobierno Propio establece la paridad de género (50/50) obligatoria en la composición del Consejo Mayor de Gobierno, y ordena que la Consejería de Mujer, Familia y Generación siempre sea ocupada por una mujer.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC (Mandatos 70–72).",
-              "conexiones": ["M-10"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-16",
-              "fecha": "2019-11-18",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Justicia Propia",
-              "titulo": "Ley de Gobierno Propio 2019 – Sistema de Justicia y JEI",
-              "descripcion": "La LGP de 2019 crea el Consejo para el Fortalecimiento de la Justicia Propia y la Jurisdicción Especial Indígena (JEI) como órgano asesor permanente.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC (Título sobre Justicia Propia).",
-              "conexiones": ["M-8"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-17",
-              "fecha": "2019-11-18",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Economía Propia",
-              "titulo": "Ley de Gobierno Propio 2019 – Régimen Económico y Autosostenibilidad",
-              "descripcion": "La LGP dedica un capítulo al Régimen Económico y de Autosostenibilidad, definiendo la economía propia como un sistema solidario. Propone la creación de un 'Banco Indígena' y la marca 'Semilla Nativa'.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC (Capítulo VI).",
-              "conexiones": ["M-7", "M-22", "M-23"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-21",
-              "fecha": "2020-05-12",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Comunicación",
-              "titulo": "Alerta ONIC por COVID-19 en la Amazonía",
-              "descripcion": "En mayo de 2020, la ONIC lanza una alerta sobre la amenaza del COVID-19 en comunidades indígenas de la Amazonía. La denuncia es replicada por medios nacionales.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Boletín ONIC / Noticia de salud. (2020).",
-              "conexiones": [],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "C-22",
-              "fecha": "2020-09-16",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Derribo de la estatua de Sebastián de Belalcázar por indígenas Misak",
-              "descripcion": "Indígenas Misak derriban la estatua del conquistador Sebastián de Belalcázar en Popayán tras un 'juicio simbólico'. El hecho desata un debate nacional sobre la memoria histórica y el racismo.",
-              "actoresClave": "Pueblo Misak",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Viral en redes. (2020).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "C-23",
-              "fecha": "2020-10-17",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Comunicación",
-              "titulo": "Campaña 'Cuidémonos en Minga' durante la pandemia",
-              "descripcion": "La ONIC lanza la campaña 'Cuidémonos en Minga' para promover el autocuidado frente al COVID-19 desde la solidaridad comunitaria. Se difunde en radios indígenas y redes sociales.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Campaña en redes / Noticia de salud. (2020).",
-              "conexiones": [],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "C-24",
-              "fecha": "2021-05-09",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Ataque armado a la Minga Indígena en Cali durante el Paro Nacional",
-              "descripcion": "En Cali, civiles armados atacan a la Minga Indígena durante el Paro Nacional. Los videos del ataque generaron indignación y condenas, evidenciando el racismo y la violencia.",
-              "actoresClave": "Minga Indígena, Civiles armados",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Denuncia ONG. (2021).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "M-18",
-              "fecha": "2021-10-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Territorio",
-              "titulo": "X Congreso Nacional de Pueblos Indígenas (2021) – Justicia Climática",
-              "descripcion": "El X Congreso introduce el discurso de Justicia Climática. La ONIC se declara en crisis climática y exige una moratoria a la explotación de combustibles fósiles.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional de Pueblos Indígenas.",
-              "conexiones": ["M-2"],
-              "color": "#10B981"
-            },
-            {
-              "id": "M-19",
-              "fecha": "2021-10-15",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Salud y Educación",
-              "titulo": "X Congreso 2021 – Exigencia de implementación SISPI",
-              "descripcion": "Ante la falta de avances, el X Congreso mandata posicionar acciones estratégicas para exigir la expedición de la norma SISPI, incluyendo la posibilidad de una Minga Nacional.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (SEIP y SISPI).",
-              "conexiones": ["M-9"],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "M-19b",
-              "fecha": "2021-10-15",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Salud y Educación",
-              "titulo": "X Congreso 2021 – Exigencia de implementación SEIP",
-              "descripcion": "Ante la falta de avances, el X Congreso mandata posicionar acciones estratégicas para exigir la expedición de la norma SEIP, incluyendo la posibilidad de una Minga Nacional.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (SEIP y SISPI).",
-              "conexiones": ["M-9b"],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "M-20",
-              "fecha": "2021-10-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Mujer y Juventud",
-              "titulo": "X Congreso 2021 – Mandatos sobre Mujeres, Niñez y Juventud",
-              "descripcion": "Se exige crear rutas de atención dentro de la justicia propia para casos de violencia contra la mujer, niñez y familia y se ordena acompañamiento jurídico a mujeres indígenas víctimas del conflicto armado.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (Mujer, Familia y Generación).",
-              "conexiones": ["M-15"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-21",
-              "fecha": "2021-10-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "X Congreso 2021 – Política Pública de Comunicación (PPCPI)",
-              "descripcion": "El X Congreso orienta la implementación de la Política Pública de Comunicación de y para los Pueblos Indígenas (PPCPI), buscando consolidar un sistema propio de comunicación indígena.",
-              "actoresClave": "ONIC",
-              "ambito": "Interno",
-              "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (Comunicación).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-25",
-              "fecha": "2021-12-30",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "2021: el año más violento para indígenas desde el Acuerdo de Paz",
-              "descripcion": "Informes señalan que 2021 fue el año más violento para los indígenas desde 2016, con decenas de líderes asesinados. Medios nacionales difunden las cifras de la ONIC.",
-              "actoresClave": "ONIC, Medios de comunicación",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa. (2021).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-22",
-              "fecha": "2022-01-01",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Sentencia Corte IDH (Caso Pueblo U’wa vs. Colombia)",
-              "descripcion": "La Corte IDH determinó la responsabilidad internacional de Colombia por violaciones a los derechos del pueblo indígena U’wa, al permitir por décadas actividades extractivas y proyectos en su territorio sin consulta adecuada.",
-              "actoresClave": "Corte Interamericana de Derechos Humanos",
-              "ambito": "Global",
-              "fuente": "Sentencia Corte IDH, Caso 11.754",
-              "conexiones": ["C-5", "C-12", "C-30"],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-26",
-              "fecha": "2022-10-07",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Informe de la ONIC ante la ONU (RPU 2022)",
-              "descripcion": "La ONIC presenta en 2022 un informe sombra en el Examen Periódico Universal (ONU) denunciando la precaria implementación del Acuerdo de Paz y continuas violaciones de DD.HH.",
-              "actoresClave": "ONIC, ONU",
-              "ambito": "Global",
-              "fuente": "Informe ONG / Cobertura internacional. (2022).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-27",
-              "fecha": "2022-08-07",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Posesión presidencial de Gustavo Petro con simbolismo indígena",
-              "descripcion": "La posesión de Gustavo Petro en 2022 incluyó simbolismo indígena: delegados de varias guardias indígenas participaron en la ceremonia y Petro recibió un bastón de mando ancestral.",
-              "actoresClave": "Gustavo Petro, Guardia Indígena",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Evento público. (2022).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-23",
-              "fecha": "2023-05-19",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Ley 2294 de 2023 (Plan Nacional de Desarrollo 2022-2026)",
-              "descripcion": "Adopta el PND 2022-2026 'Colombia Potencia Mundial de la Vida'. Gracias a la incidencia indígena, incluyó 29 artículos con disposiciones en favor de los pueblos indígenas.",
-              "actoresClave": "Congreso de la República",
-              "ambito": "Colombia",
-              "fuente": "Ley 2294 de 2023",
-              "conexiones": ["M-22"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-22",
-              "fecha": "2023-05-19",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Economía Propia",
-              "titulo": "Creación del Fondo para el Buen Vivir Indígena – PND 2022–2026",
-              "descripcion": "El PND 2022–2026 incorpora por primera vez el Fondo para el Buen Vivir de los Pueblos Indígenas, para financiar líneas como soberanía alimentaria, Guardia Indígena e institucionalidad propia.",
-              "actoresClave": "Departamento Nacional de Planeación (DNP)",
-              "ambito": "Externo",
-              "fuente": "DNP. (2023). Plan Nacional de Desarrollo 2022–2026 (Ley 2294 de 2023).",
-              "conexiones": ["M-17", "N-23"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-28",
-              "fecha": "2023-06-09",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Comunicación",
-              "titulo": "Rescate de niños indígenas perdidos en la selva amazónica",
-              "descripcion": "Cuatro niños del pueblo Uitoto son rescatados tras 40 días perdidos en la selva. La noticia tuvo cobertura mundial al destacarse que sobrevivieron gracias a sus conocimientos ancestrales.",
-              "actoresClave": "Niños Uitoto, Fuerza Pública, Guardia Indígena",
-              "ambito": "Global",
-              "fuente": "Noticia de prensa global. (2023).",
-              "conexiones": [],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "C-29",
-              "fecha": "2023-07-15",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Comunicación",
-              "titulo": "Lanzamiento de la plataforma radial 'Ka'tikunsi'",
-              "descripcion": "La ONIC inaugura en 2023 'Ka'tikunsi', una plataforma radial para difundir derechos territoriales y cultura de los pueblos indígenas.",
-              "actoresClave": "ONIC",
-              "ambito": "Colombia",
-              "fuente": "Medio comunitario / Blog. (2023).",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-23",
-              "fecha": "2023-10-12",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Economía Propia",
-              "titulo": "Lanzamiento de 'Semilla Nativa Indígena' – Marca y Plataforma Comercial",
-              "descripcion": "La ONIC implementa su estrategia de economía propia con el lanzamiento de Semilla Nativa Indígena, una marca comercial y plataforma de e-commerce que agrupa productos indígenas.",
-              "actoresClave": "ONIC",
-              "ambito": "Externo",
-              "fuente": "ONIC. (2024). Semilla Nativa Indígena – Plataforma de Economías Propias (sitio web oficial).",
-              "conexiones": ["M-17"],
-              "color": "#1F2937"
-            },
-            {
-              "id": "M-24",
-              "fecha": "2024-08-02",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Salud Propia",
-              "titulo": "Decreto Ley 968 de 2024 – SISPI (Territorio CRIC)",
-              "descripcion": "El gobierno expide el Decreto 968, que establece las normas para la administración y operatividad del SISPI en el territorio indígena del Consejo Regional Indígena del Cauca (CRIC).",
-              "actoresClave": "Presidencia de la República, CRIC",
-              "ambito": "Externo",
-              "fuente": "Presidencia de la República de Colombia. (2024). Decreto Ley 968 de 2024.",
-              "conexiones": ["M-9"],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "C-30",
-              "fecha": "2024-12-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Comunicación",
-              "titulo": "Fallo de la Corte IDH en el caso U'wa vs. Colombia",
-              "descripcion": "En dic 2024 la Corte IDH falla a favor del pueblo U'wa, declarando al Estado colombiano responsable de violar sus derechos territoriales y culturales. La noticia es ampliamente cubierta por la prensa internacional.",
-              "actoresClave": "Corte IDH, Pueblo U'wa, ONIC",
-              "ambito": "Global",
-              "fuente": "Noticia de prensa internacional. (2024).",
-              "conexiones": ["N-22"],
-              "color": "#10B981"
-            },
-            {
-              "id": "C-31",
-              "fecha": "2025-04-15",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Minga Indígena Nacional 2025",
-              "descripcion": "En abril de 2025 se realiza una nueva Minga Indígena Nacional. Miles de indígenas se movilizan exigiendo cumplimiento de acuerdos, defensa del territorio y denunciando el racismo.",
-              "actoresClave": "Movimiento Indígena",
-              "ambito": "Colombia",
-              "fuente": "Cobertura mediática multiplataforma. (2025).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-26",
-              "fecha": "2025-04-30",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 0480 de 2025 (Sistema Indígena de Salud - SISPI)",
-              "descripcion": "Establece e implementa el Sistema Indígena de Salud Propia e Intercultural (SISPI) como política de Estado, reconociendo la medicina tradicional y la autonomía de los pueblos indígenas en la gestión de la salud.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 0480 de 2025",
-              "conexiones": ["C-32"],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "N-27",
-              "fecha": "2025-04-30",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 0481 de 2025 (Sistema Educativo Indígena Propio - SEIP)",
-              "descripcion": "Reconoce y establece el Sistema Educativo Indígena Propio (SEIP) como política de Estado, garantizando la autonomía educativa de los pueblos indígenas.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 0481 de 2025",
-              "conexiones": ["M-25"],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "M-25",
-              "fecha": "2025-04-30",
-              "temaPrincipal": "Educación y Conocimiento Indígena",
-              "subtema": "Educación Propia",
-              "titulo": "Decreto 481 de 2025 – Establecimiento del SEIP como Política de Estado",
-              "descripcion": "El Gobierno expide el Decreto 481, que reconoce y establece el SEIP como política pública de Estado, garantizando la autonomía educativa indígena.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Externo",
-              "fuente": "Presidencia de la República de Colombia. (2025). Decreto 481 de 2025.",
-              "conexiones": ["M-9b", "M-19b", "N-27"],
-              "color": "#F59E0B"
-            },
-            {
-              "id": "C-32",
-              "fecha": "2025-04-30",
-              "temaPrincipal": "Salud y Medicina Tradicional",
-              "subtema": "Comunicación",
-              "titulo": "Decreto 480 de 2025: Sistema Indígena de Salud Propia Intercultural (SISPI)",
-              "descripcion": "El Gobierno expide el Decreto 480 que establece el SISPI como política de Estado. La ONIC lo presenta como un hito de autonomía en salud y la prensa destaca este avance.",
-              "actoresClave": "Gobierno de Colombia, ONIC",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Decreto oficial. (2025).",
-              "conexiones": ["N-26"],
-              "color": "#3B82F6"
-            },
-            {
-              "id": "N-28",
-              "fecha": "2025-04-30",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 0482 de 2025 (Territorio Indígena Wayúu)",
-              "descripcion": "Establece un régimen transitorio especial para la puesta en funcionamiento del territorio indígena Wayúu en la zona norte extrema de la Alta Guajira, desarrollando disposiciones fiscales y administrativas.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 0482 de 2025",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "N-29",
-              "fecha": "2025-04-30",
-              "temaPrincipal": "Gobernabilidad y Autonomía",
-              "subtema": "Normatividad",
-              "titulo": "Decreto 0488 de 2025 (Régimen Fiscal y Funcional de Territorios Indígenas)",
-              "descripcion": "Dicta normas sobre el régimen fiscal y el funcionamiento de los Territorios Indígenas, y su coordinación con otras entidades territoriales. Regula competencias sectoriales y uso de recursos.",
-              "actoresClave": "Presidencia de la República",
-              "ambito": "Colombia",
-              "fuente": "Decreto 0488 de 2025",
-              "conexiones": [],
-              "color": "#1F2937"
-            },
-            {
-              "id": "C-33",
-              "fecha": "2025-06-01",
-              "temaPrincipal": "Derechos Humanos y Paz",
-              "subtema": "Comunicación",
-              "titulo": "Continuas denuncias de violencia contra líderes indígenas",
-              "descripcion": "En 2025 persisten las denuncias de asesinatos y amenazas contra líderes indígenas, con la ONIC como fuente principal. La prensa y las ONG replican estas alarmas.",
-              "actoresClave": "ONIC, Prensa, ONGs",
-              "ambito": "Colombia",
-              "fuente": "Noticia de prensa / Informe DD.HH. (2025).",
-              "conexiones": [],
-              "color": "#EF4444"
-            },
-            {
-              "id": "N-25",
-              "fecha": "2025-06-15",
-              "temaPrincipal": "Territorio y Ambiente",
-              "subtema": "Normatividad",
-              "titulo": "Resolución 1736 de 2025 (Subcuenta de Tierras Indígenas)",
-              "descripcion": "Emitida por la ANT para impartir lineamientos sobre el funcionamiento de la subcuenta especial de tierras destinada a la dotación de tierras a comunidades indígenas, en el marco del Fondo de Tierras.",
-              "actoresClave": "Agencia Nacional de Tierras",
-              "ambito": "Colombia",
-              "fuente": "Resolución 1736 de 2025",
-              "conexiones": [],
-              "color": "#10B981"
-            }
+            { "id": "N-1", "fecha": "1991-03-06", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Ley 21 de 1991 (Convenio 169 de la OIT)", "descripcion": "Aprueba el Convenio 169 de la OIT sobre pueblos indígenas y tribales, incorporándolo al ordenamiento interno. Integra estándares internacionales como la consulta previa y la protección de tierras indígenas al bloque de constitucionalidad colombiano.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 21 de 1991", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-2", "fecha": "1991-07-04", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Constitución Política de Colombia de 1991", "descripcion": "Establece a Colombia como un Estado pluriétnico y multicultural, reconociendo la autonomía de los pueblos indígenas, su jurisdicción especial y la propiedad colectiva de sus tierras.", "actoresClave": "Asamblea Nacional Constituyente", "ambito": "Colombia", "fuente": "Constitución Política de Colombia de 1991", "conexiones": ["C-1"], "color": "#1F2937" },
+            { "id": "C-1", "fecha": "1991-07-04", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Promulgación de la Constitución Política de 1991", "descripcion": "La nueva Constitución de Colombia reconoce al país como nación pluriétnica y multicultural, garantizando derechos colectivos a los pueblos indígenas (idioma, autonomía territorial, justicia propia, consulta previa), marcando un cambio histórico en su representación legal.", "actoresClave": "Asamblea Nacional Constituyente, Medios de comunicación", "ambito": "Colombia", "fuente": "Diversos medios de prensa. (1991). Cobertura de la promulgación de la Constitución.", "conexiones": ["N-2"], "color": "#1F2937" },
+            { "id": "C-2", "fecha": "1992-10-12", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "500 años de Resistencia Indígena", "descripcion": "Movilizaciones y pronunciamientos indígenas en Colombia y toda América rechazan la celebración oficial del 'Encuentro de Dos Mundos'. En medios se visibiliza la consigna de '500 años de resistencia' para reivindicar la memoria y denunciar la colonización.", "actoresClave": "Organizaciones indígenas, Movimientos sociales", "ambito": "Latinoamérica", "fuente": "Cobertura mediática de protestas. (1992).", "conexiones": [], "color": "#EF4444" },
+            { "id": "N-3", "fecha": "1993-12-22", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Ley 99 de 1993 (Ley General Ambiental)", "descripcion": "Crea el Ministerio del Medio Ambiente y regula la gestión ambiental; su Artículo 76 exige la consulta previa a comunidades indígenas y negras antes de autorizar proyectos de explotación de recursos naturales en sus territorios.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 99 de 1993", "conexiones": [], "color": "#10B981" },
+            { "id": "N-4", "fecha": "1994-08-03", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Ley 160 de 1994 (Sistema Nacional de Reforma Agraria)", "descripcion": "Establece el sistema de reforma agraria; el Capítulo XIV encomienda al Estado estudiar, titular y ampliar resguardos indígenas, dotando de tierras a comunidades sin título y saneando territorios ocupados por terceros.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 160 de 1994", "conexiones": [], "color": "#10B981" },
+            { "id": "N-5", "fecha": "1995-12-07", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Decreto 2164 de 1995 (Reglamentación de resguardos)", "descripcion": "Reglamenta parcialmente la Ley 160/94 en materia de dotación y titulación de tierras a comunidades indígenas para constituir, reestructurar, ampliar y sanear resguardos.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 2164 de 1995", "conexiones": [], "color": "#10B981" },
+            { "id": "C-3", "fecha": "1996-07-05", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Toma de la sede de la Conferencia Episcopal en Bogotá", "descripcion": "Unos 3.000 indígenas ocuparon pacíficamente durante 43 días la sede de la Conferencia Episcopal de Colombia, exigiendo cumplimiento de derechos territoriales y el fin de la violencia. La protesta obtuvo amplia cobertura nacional.", "actoresClave": "Pueblos indígenas movilizados", "ambito": "Colombia", "fuente": "Noticia de prensa. (1996).", "conexiones": ["N-6", "C-4"], "color": "#EF4444" },
+            { "id": "N-6", "fecha": "1996-08-08", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 1397 de 1996 (Creación de la CNTI y MPC)", "descripcion": "Crea la Comisión Nacional de Territorios Indígenas (CNTI) y la Mesa Permanente de Concertación (MPC) con Pueblos Indígenas, para la concertación de políticas y la coordinación Estado-pueblos indígenas.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 1397 de 1996", "conexiones": ["C-3", "C-4"], "color": "#1F2937" },
+            { "id": "C-4", "fecha": "1996-08-08", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Creación de la Mesa Permanente de Concertación", "descripcion": "Tras la protesta de 1996, el Gobierno crea por decreto la Mesa Permanente de Concertación entre organizaciones indígenas y el Estado. Este espacio institucionalizado de diálogo es difundido como un avance en la relación Estado-pueblos indígenas.", "actoresClave": "Gobierno de Colombia, Organizaciones Indígenas", "ambito": "Colombia", "fuente": "Decreto 1397 de 1996.", "conexiones": ["C-3", "N-6"], "color": "#1F2937" },
+            { "id": "N-7", "fecha": "1997-02-06", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Sentencia SU-039/97 (Caso U’wa - Consulta Previa)", "descripcion": "La Corte falló a favor del pueblo U’wa, reconociendo que se vulneró su derecho fundamental a la consulta previa ante un proyecto petrolero y ordenando realizar la consulta antes de continuar con la explotación.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia SU-039 de 1997", "conexiones": ["C-5"], "color": "#1F2937" },
+            { "id": "C-5", "fecha": "1997-05-20", "temaPrincipal": "Territorio y Ambiente", "subtema": "Comunicación", "titulo": "Caso U'wa: Internacionalización de la lucha contra OXY", "descripcion": "La Nación U'wa lleva su batalla contra la petrolera Occidental al plano internacional: en 1997 presenta denuncia ante la CIDH y líderes U'wa realizan giras globales. La amenaza colectiva de suicidio para proteger su tierra obtiene amplio eco mediático mundial.", "actoresClave": "Nación U'wa, CIDH, Occidental Petroleum", "ambito": "Global", "fuente": "Artículo de prensa internacional. (1997).", "conexiones": ["N-7", "C-12", "N-22"], "color": "#10B981" },
+            { "id": "N-8", "fecha": "1998-07-10", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 1320 de 1998 (Consulta previa en recursos naturales)", "descripcion": "Reglamenta la consulta previa con comunidades indígenas y negras para la explotación de recursos naturales en sus territorios, definiendo procedimientos y etapas para su realización.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 1320 de 1998", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-9", "fecha": "2002-10-24", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Sentencia C-891/02 (Consulta en Código de Minas)", "descripcion": "Al resolver una demanda contra el Código de Minas (Ley 685/2001), la Corte afirmó la obligación de consulta previa en la expedición de leyes que afecten directamente a comunidades indígenas, considerando viciada la ley por falta de consulta.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-891 de 2002", "conexiones": [], "color": "#1F2937" },
+            { "id": "M-1", "fecha": "2007-12-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Gobierno Propio", "titulo": "VII Congreso Nacional de Pueblos Indígenas (ONIC)", "descripcion": "Decisión histórica de transformar la ONIC en Autoridad Nacional de Gobierno Indígena. Mandato General Art.20-21 rompe con figura de ONG gremial y adopta un modelo de gobierno autónomo propio.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2007). Mandato General - VII Congreso Nacional de Pueblos Indígenas.", "conexiones": [], "color": "#1F2937" },
+            { "id": "M-2", "fecha": "2007-12-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Territorio", "titulo": "Mandatos VII Congreso 2007 – Política Territorial Indígena", "descripcion": "El VII Congreso denuncia el despojo territorial histórico, repudia el Estatuto de Desarrollo Rural y formula la Política Territorial Indígena Nacional, pasando de la resistencia a propuestas concretas.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Territorio).", "conexiones": [], "color": "#10B981" },
+            { "id": "M-3", "fecha": "2007-12-15", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Justicia y Paz", "titulo": "Mandatos VII Congreso 2007 – Neutralidad y Justicia Propia", "descripcion": "El VII Congreso adopta una posición de neutralidad activa frente al conflicto armado colombiano y reafirma la jurisdicción especial indígena y la facultad de ejercer justicia propia en los territorios.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Paz y Justicia).", "conexiones": [], "color": "#EF4444" },
+            { "id": "M-4", "fecha": "2007-12-15", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Salud y Educación", "titulo": "Mandatos VII Congreso 2007 – Sistemas Propios de Salud", "descripcion": "Plantea la visión inicial de un Sistema Indígena de Salud Propia e Intercultural (SISPI), adaptado a la cultura ancestral y en rechazo al modelo estatal.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Educación y Salud).", "conexiones": ["M-9"], "color": "#3B82F6" },
+            { "id": "M-4b", "fecha": "2007-12-15", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Salud y Educación", "titulo": "Mandatos VII Congreso 2007 – Sistemas Propios de Educación", "descripcion": "Plantea la visión inicial de un Sistema Educativo Indígena Propio (SEIP), adaptado a la cultura ancestral y en rechazo al modelo estatal.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Educación y Salud).", "conexiones": ["M-9"], "color": "#F59E0B" },
+            { "id": "M-5", "fecha": "2007-12-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Mujer y Juventud", "titulo": "Mandatos VII Congreso 2007 – Creación Consejería Mujer, Familia y Generación", "descripcion": "Se institucionaliza la perspectiva de género y generacional al crear la Consejería de Mujer, Familia y Generación (MFG) como una de las nueve consejerías del Consejo Mayor de Gobierno.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2008). Mandatos del VII Congreso Nacional de Pueblos Indígenas (secciones de Mujer, Familia y Generación).", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-10", "fecha": "2008-01-29", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Sentencia C-030/08 (Ley Forestal Inexequible)", "descripcion": "Declara inexequible la Ley 1021 de 2006 (Ley General Forestal) por haberse expedido sin consulta previa a comunidades indígenas y afrodescendientes, dado que dicha ley afectaba sus derechos territoriales.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-030 de 2008", "conexiones": [], "color": "#10B981" },
+            { "id": "C-6", "fecha": "2008-10-12", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Minga Indígena Nacional (Protestas masivas de 2008)", "descripcion": "Más de 10.000 indígenas marchan desde el Cauca hasta Cali en 2008, exigiendo territorio, cumplimiento de acuerdos y fin de la violencia. La 'Minga de Resistencia' recibe gran cobertura mediática nacional.", "actoresClave": "Movimiento indígena", "ambito": "Colombia", "fuente": "Artículo de prensa / Cobertura TV. (2008).", "conexiones": [], "color": "#EF4444" },
+            { "id": "N-11", "fecha": "2009-01-26", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Normatividad", "titulo": "Auto 004 de 2009 (Pueblos Indígenas en Riesgo de Extinción)", "descripcion": "En el marco del estado de cosas inconstitucional por desplazamiento (Sentencia T-025/04), se identifican 34 pueblos indígenas en alto riesgo de exterminio físico y cultural por el conflicto armado.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Auto 004 de 2009", "conexiones": ["C-7", "C-11"], "color": "#EF4444" },
+            { "id": "C-7", "fecha": "2009-01-26", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Corte Constitucional alerta sobre riesgo de exterminio indígena", "descripcion": "La Corte Constitucional emite el Auto 004/2009 identificando 34 pueblos indígenas en peligro de extinción física y cultural por el conflicto armado. Los medios amplifican la alarma.", "actoresClave": "Corte Constitucional, Medios de comunicación", "ambito": "Colombia", "fuente": "Noticia de prensa / Informe judicial. (2009).", "conexiones": ["N-11", "C-11"], "color": "#EF4444" },
+            { "id": "N-12", "fecha": "2009-03-11", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Sentencia C-175/09 (Estatuto de Desarrollo Rural Inexequible)", "descripcion": "Declara inexequible la Ley 1152 de 2007 (nuevo Estatuto de Desarrollo Rural) por falta de consulta previa a pueblos indígenas y comunidades afrodescendientes en su trámite legislativo.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-175 de 2009", "conexiones": [], "color": "#10B981" },
+            { "id": "C-8", "fecha": "2010-01-25", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Comunicación", "titulo": "Ley 1381 de 2010 (Ley de Lenguas Nativas)", "descripcion": "Entra en vigencia la Ley de Lenguas Nativas, que protege y promueve los idiomas indígenas de Colombia. La prensa nacional destaca este logro cultural y lingüístico.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Noticia de prensa / Ley. (2010).", "conexiones": [], "color": "#F59E0B" },
+            { "id": "N-13", "fecha": "2011-06-28", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Ley Orgánica 1454 de 2011 (Ordenamiento Territorial - LOOT)", "descripcion": "Expide la Ley Orgánica de Ordenamiento Territorial. Sin embargo, no desarrolló a cabalidad lo dispuesto en el artículo 329 de la Constitución sobre Entidades Territoriales Indígenas.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 1454 de 2011", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-14", "fecha": "2011-12-09", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Normatividad", "titulo": "Decreto Ley 4633 de 2011 (Víctimas Indígenas)", "descripcion": "Establece medidas de asistencia, atención, reparación integral y restitución de derechos territoriales para las comunidades indígenas víctimas del conflicto armado, reconociendo al 'territorio' como víctima colectiva.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto Ley 4633 de 2011", "conexiones": [], "color": "#EF4444" },
+            { "id": "M-6", "fecha": "2012-08-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Gobierno Propio", "titulo": "VIII Congreso Nacional de Pueblos Indígenas (2012)", "descripcion": "El VIII Congreso ratifica y profundiza la transformación institucional. Declara a la ONIC como 'entidad autónoma pública de carácter especial en el Estado Social de Derecho'.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional de Pueblos Indígenas.", "conexiones": ["M-1"], "color": "#1F2937" },
+            { "id": "M-7", "fecha": "2012-08-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Territorio", "titulo": "Mandatos VIII Congreso 2012 – Defensa del Territorio vs. Modelo Estatal", "descripcion": "El VIII Congreso profundiza la defensa territorial, vinculando el modelo de desarrollo estatal con violaciones de derechos. Se ordena la expulsión de todas las empresas que atenten contra los territorios.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Territorio y Recursos Naturales).", "conexiones": ["M-2"], "color": "#10B981" },
+            { "id": "M-8", "fecha": "2012-08-15", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Justicia y Paz", "titulo": "Mandatos VIII Congreso 2012 – Propuesta de Paz y Justicia Propia", "descripcion": "El VIII Congreso consagra un Título de 'Propuesta de Paz de los Pueblos Indígenas', exigiendo participación directa en las negociaciones de paz. Paralelamente, refuerza la justicia indígena.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Paz y Justicia).", "conexiones": ["M-3", "M-13"], "color": "#EF4444" },
+            { "id": "M-9", "fecha": "2012-08-15", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Salud y Educación", "titulo": "Mandatos VIII Congreso 2012 – Conceptualización del SISPI", "descripcion": "El VIII Congreso detalla los componentes del SISPI (estructura, financiamiento, modelos de atención) y traza la hoja de ruta para su consolidación. Es la primera formulación integral del SISPI.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Educación Propia y Salud Propia).", "conexiones": ["M-4", "M-19"], "color": "#3B82F6" },
+            { "id": "M-9b", "fecha": "2012-08-15", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Salud y Educación", "titulo": "Mandatos VIII Congreso 2012 – Conceptualización del SEIP", "descripcion": "El VIII Congreso detalla los componentes del SEIP (estructura, financiamiento, modelos de atención) y traza la hoja de ruta para su consolidación. Es la primera formulación integral del SEIP.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Educación Propia y Salud Propia).", "conexiones": ["M-4b", "M-19"], "color": "#F59E0B" },
+            { "id": "M-10", "fecha": "2012-08-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Mujer y Juventud", "titulo": "Mandatos VIII Congreso 2012 – Políticas de Mujer, Niñez, Juventud y Mayores", "descripcion": "Se ordena formular una Política Propia Indígena para Mujeres; una política para mayores/sabios; y una política para jóvenes, niñas y niños. Se crea la Coordinación Nacional de Juventudes.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2012). Mandatos del VIII Congreso Nacional (Mujer, Familia y Generación).", "conexiones": ["M-5"], "color": "#1F2937" },
+            { "id": "M-11", "fecha": "2012-08-22", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Paz y Conflicto", "titulo": "Pronunciamiento ONIC sobre conflicto en el Cauca (2012)", "descripcion": "Tras graves enfrentamientos en el norte del Cauca, la ONIC emite un comunicado reafirmando su neutralidad y exigiendo la desmilitarización de territorios indígenas.", "actoresClave": "ONIC", "ambito": "Externo", "fuente": "ONIC. (2012, 22 de agosto). Pronunciamiento: frente a la profundización del conflicto armado en territorios indígenas del Cauca.", "conexiones": ["M-3"], "color": "#EF4444" },
+            { "id": "N-16", "fecha": "2013-01-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Sentencia T-009/13 (Titulación Resguardo Sikuani)", "descripcion": "Ordena a INCODER titular sin más demoras el resguardo indígena Sikuani de Arizona-Cupey, tras hallar vulnerado el derecho al debido proceso y a la propiedad colectiva por la prolongada dilación en la titulación.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia T-009 de 2013", "conexiones": ["C-9"], "color": "#10B981" },
+            { "id": "C-9", "fecha": "2013-01-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Comunicación", "titulo": "Sentencia T-009 de 2013 (Corte Constitucional)", "descripcion": "La Corte Constitucional ratifica en la Sentencia T-009/13 el derecho a la propiedad colectiva y el debido proceso en la titulación de resguardos indígenas. ONIC difunde el fallo como un triunfo jurídico.", "actoresClave": "Corte Constitucional, ONIC", "ambito": "Colombia", "fuente": "Artículo de prensa jurídica. (2013).", "conexiones": ["N-16"], "color": "#10B981" },
+            { "id": "N-15", "fecha": "2013-12-20", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 2613 de 2013 (Protocolo de Consulta Interinstitucional)", "descripcion": "Adopta el Protocolo de Coordinación Interinstitucional para la Consulta Previa, con el fin de articular a las entidades del Estado en los procesos de consulta con comunidades étnicas.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 2613 de 2013", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-17", "fecha": "2014-10-07", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 1953 de 2014 (Régimen Territorial Indígena Transitorio)", "descripcion": "Crea un régimen especial de carácter transitorio para poner en funcionamiento las entidades territoriales indígenas, permitiendo administrar asuntos propios (salud, educación, etc.) mientras se expide la ley orgánica respectiva.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 1953 de 2014", "conexiones": ["C-10"], "color": "#1F2937" },
+            { "id": "C-10", "fecha": "2014-12-05", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Decreto 1953 de 2014 (Régimen Especial Indígena)", "descripcion": "El Gobierno expide el Decreto 1953/2014 creando un régimen especial para la gestión de asuntos indígenas. Medios nacionales informan sobre este avance en la autonomía indígena.", "actoresClave": "Gobierno de Colombia, Organizaciones Indígenas", "ambito": "Colombia", "fuente": "Noticia de prensa / Decreto oficial. (2014).", "conexiones": ["N-17"], "color": "#1F2937" },
+            { "id": "C-11", "fecha": "2014-12-10", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Alerta sobre desaparición de pueblos indígenas", "descripcion": "La ONIC denuncia públicamente que más de 30 pueblos indígenas enfrentan riesgo de desaparición física y cultural. Esta advertencia, replicada en prensa y por ONG, enmarca la crisis humanitaria indígena.", "actoresClave": "ONIC, Prensa, ONGs", "ambito": "Colombia", "fuente": "Comunicado ONIC / Noticia de prensa. (2014).", "conexiones": ["N-11", "C-7"], "color": "#EF4444" },
+            { "id": "N-18", "fecha": "2014-12-11", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Decreto 2333 de 2014 (Protección de Tierras Ancestrales)", "descripcion": "Establece mecanismos para la protección efectiva y seguridad jurídica de las tierras y territorios ocupados o poseídos ancestral y tradicionalmente por pueblos indígenas, mientras se tramita su titulación.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 2333 de 2014", "conexiones": [], "color": "#10B981" },
+            { "id": "N-19", "fecha": "2014-12-23", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 2719 de 2014 (Ejecución Directa de SGP)", "descripcion": "Define parámetros para que resguardos indígenas y sus asociaciones acrediten experiencia, habilitándolos a ejecutar directamente los recursos del Sistema General de Participaciones (SGP).", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 2719 de 2014", "conexiones": [], "color": "#1F2937" },
+            { "id": "C-12", "fecha": "2015-10-16", "temaPrincipal": "Territorio y Ambiente", "subtema": "Comunicación", "titulo": "Admisibilidad del caso U'wa ante la CIDH", "descripcion": "La Comisión Interamericana de DD.HH. declara admisible la denuncia del pueblo U'wa contra Colombia, por no proteger su territorio frente a proyectos extractivos. Organizaciones celebran este paso legal.", "actoresClave": "CIDH, Pueblo U'wa, ONIC", "ambito": "Latinoamérica", "fuente": "Noticia de prensa / Comunicado ONIC. (2015).", "conexiones": ["C-5", "N-22"], "color": "#10B981" },
+            { "id": "M-12", "fecha": "2016-09-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Gobierno Propio", "titulo": "IX Congreso Nacional de Pueblos Indígenas (2016) – Mandato de Ley Propia", "descripcion": "El IX Congreso mandata la elaboración de una Ley de Gobierno Propio escrita que consolide la estructura y normas internas de la ONIC, orientando a la organización para un escenario de posacuerdo.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2016). Mandatos del IX Congreso Nacional de Pueblos Indígenas.", "conexiones": ["M-6", "C-13"], "color": "#1F2937" },
+            { "id": "M-13", "fecha": "2016-08-24", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Paz y Derechos", "titulo": "Inclusión del Capítulo Étnico en el Acuerdo Final de Paz (2016)", "descripcion": "El Acuerdo Final de Paz Gobierno–FARC incorpora un Capítulo Étnico específico. Este capítulo reconoce la desproporcional afectación del conflicto y garantiza derechos en la implementación de la paz.", "actoresClave": "Gobierno de Colombia, FARC-EP, ONIC, CONPI, AISO", "ambito": "Externo", "fuente": "Gobierno de Colombia & FARC-EP. (2016). “Acuerdo Final para la Terminación del Conflicto…” (Capítulo Étnico).", "conexiones": ["M-8"], "color": "#EF4444" },
+            { "id": "C-13", "fecha": "2016-07-20", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Mandato para la Ley de Gobierno Propio (IX Congreso ONIC)", "descripcion": "El IX Congreso de la ONIC (2016) aprueba el mandato de formular una Ley de Gobierno Propio indígena. Inicia un proceso interno de reestructuración y autogobierno.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Boletín ONIC / Nota en blogs. (2016).", "conexiones": ["M-12"], "color": "#1F2937" },
+            { "id": "C-14", "fecha": "2017-11-01", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "ONIC llama a 'rodear la paz' ante repunte de violencia", "descripcion": "Ante el repunte de asesinatos de líderes tras el Acuerdo de Paz, la ONIC hace en 2017 un llamado público a 'rodear la paz', instando al gobierno y la sociedad a proteger la vida.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Comunicado ONIC / Noticia de prensa. (2017).", "conexiones": [], "color": "#EF4444" },
+            { "id": "N-20", "fecha": "2018-03-06", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Sentencia SU-123/18 (Alcance del Derecho al Territorio)", "descripcion": "Decisión de unificación que reiteró que el 'territorio' para efectos de los derechos de los pueblos indígenas abarca no solo las áreas tituladas como resguardos, sino también las zonas de uso tradicional y ocupación ancestral.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia SU-123 de 2018", "conexiones": [], "color": "#10B981" },
+            { "id": "N-21", "fecha": "2018-07-13", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Decreto 1232 de 2018 (Protección PIACI)", "descripcion": "Establece medidas especiales de prevención y protección para los Pueblos Indígenas en Aislamiento Voluntario o en estado de aislamiento (PIACI), garantizando la intangibilidad de sus territorios.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 1232 de 2018", "conexiones": [], "color": "#10B981" },
+            { "id": "C-15", "fecha": "2018-09-05", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Denuncia de reclutamiento forzado de menores indígenas", "descripcion": "La ONIC denuncia en septiembre de 2018 que el Ejército reclutó de forma irregular a niños y jóvenes indígenas. La grave acusación aparece en medios nacionales.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Noticia de prensa / Denuncia pública. (2018).", "conexiones": [], "color": "#EF4444" },
+            { "id": "C-16", "fecha": "2018-12-01", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Aprobación de la Ley de Gobierno Propio de la ONIC", "descripcion": "La ONIC adopta formalmente en 2018 su Ley de Gobierno Propio, que codifica su estructura de autoridad y participación (incluyendo paridad de género).", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Boletín ONIC / Artículo académico. (2018).", "conexiones": ["M-14"], "color": "#1F2937" },
+            { "id": "C-17", "fecha": "2019-03-10", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Minga Social del Suroccidente (protesta indígena 2019)", "descripcion": "Comunidades indígenas bloquearon en marzo de 2019 la vía Panamericana exigiendo diálogo con el presidente Duque por sus derechos territoriales y el cumplimiento de acuerdos de paz.", "actoresClave": "Movimiento Indígena", "ambito": "Colombia", "fuente": "Cobertura periodística nacional. (2019).", "conexiones": [], "color": "#EF4444" },
+            { "id": "C-18", "fecha": "2019-07-08", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "III Congreso Internacional de Pueblos Indígenas de AL", "descripcion": "Líderes de la ONIC participan en el III Congreso Internacional de Pueblos Indígenas de América Latina (2019), reforzando alianzas regionales.", "actoresClave": "ONIC", "ambito": "Latinoamérica", "fuente": "Nota de prensa / Cobertura alternativa. (2019).", "conexiones": [], "color": "#1F2937" },
+            { "id": "C-19", "fecha": "2019-08-27", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Informe '¿Cuántos somos, dónde vivimos y cómo estamos?' (ONIC)", "descripcion": "La ONIC publica en 2019 el informe '¿Cuántos somos, dónde vivimos y cómo estamos?' con datos demográficos y sociales de los pueblos indígenas.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Informe técnico / Cobertura mediática. (2019).", "conexiones": [], "color": "#1F2937" },
+            { "id": "C-20", "fecha": "2019-10-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Campaña #SoyGuardiaIndigena", "descripcion": "La ONIC impulsa en 2019 la campaña digital #SoyGuardiaIndigena para visibilizar la Guardia Indígena como símbolo de resistencia. La etiqueta se vuelve tendencia en redes sociales.", "actoresClave": "ONIC, Guardia Indígena", "ambito": "Colombia", "fuente": "Campaña en redes sociales. (2019).", "conexiones": [], "color": "#1F2937" },
+            { "id": "M-14", "fecha": "2019-11-18", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Gobierno Propio", "titulo": "Asamblea Nacional de Autoridades Indígenas – Ley de Gobierno Propio ONIC", "descripcion": "En cumplimiento del mandato del IX Congreso, la Asamblea Nacional de Autoridades Indígenas aprueba la Ley de Gobierno Propio (LGP) de la ONIC. Esta Ley interna reemplaza los antiguos Estatutos.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC.", "conexiones": ["M-12", "C-16"], "color": "#1F2937" },
+            { "id": "M-15", "fecha": "2019-11-18", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Género y Juventud", "titulo": "Ley de Gobierno Propio 2019 – Paridad de Género y Órganos de Mujer/Juventud", "descripcion": "La Ley de Gobierno Propio establece la paridad de género (50/50) obligatoria en la composición del Consejo Mayor de Gobierno, y ordena que la Consejería de Mujer, Familia y Generación siempre sea ocupada por una mujer.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC (Mandatos 70–72).", "conexiones": ["M-10"], "color": "#1F2937" },
+            { "id": "M-16", "fecha": "2019-11-18", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Justicia Propia", "titulo": "Ley de Gobierno Propio 2019 – Sistema de Justicia y JEI", "descripcion": "La LGP de 2019 crea el Consejo para el Fortalecimiento de la Justicia Propia y la Jurisdicción Especial Indígena (JEI) como órgano asesor permanente.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC (Título sobre Justicia Propia).", "conexiones": ["M-8"], "color": "#1F2937" },
+            { "id": "M-17", "fecha": "2019-11-18", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Economía Propia", "titulo": "Ley de Gobierno Propio 2019 – Régimen Económico y Autosostenibilidad", "descripcion": "La LGP dedica un capítulo al Régimen Económico y de Autosostenibilidad, definiendo la economía propia como un sistema solidario. Propone la creación de un 'Banco Indígena' y la marca 'Semilla Nativa'.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2019). Ley de Gobierno Propio de la ONIC (Capítulo VI).", "conexiones": ["M-7", "M-22", "M-23"], "color": "#1F2937" },
+            { "id": "C-21", "fecha": "2020-05-12", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Comunicación", "titulo": "Alerta ONIC por COVID-19 en la Amazonía", "descripcion": "En mayo de 2020, la ONIC lanza una alerta sobre la amenaza del COVID-19 en comunidades indígenas de la Amazonía. La denuncia es replicada por medios nacionales.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Boletín ONIC / Noticia de salud. (2020).", "conexiones": [], "color": "#3B82F6" },
+            { "id": "C-22", "fecha": "2020-09-16", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Derribo de la estatua de Sebastián de Belalcázar por indígenas Misak", "descripcion": "Indígenas Misak derriban la estatua del conquistador Sebastián de Belalcázar en Popayán tras un 'juicio simbólico'. El hecho desata un debate nacional sobre la memoria histórica y el racismo.", "actoresClave": "Pueblo Misak", "ambito": "Colombia", "fuente": "Noticia de prensa / Viral en redes. (2020).", "conexiones": [], "color": "#EF4444" },
+            { "id": "C-23", "fecha": "2020-10-17", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Comunicación", "titulo": "Campaña 'Cuidémonos en Minga' durante la pandemia", "descripcion": "La ONIC lanza la campaña 'Cuidémonos en Minga' para promover el autocuidado frente al COVID-19 desde la solidaridad comunitaria. Se difunde en radios indígenas y redes sociales.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Campaña en redes / Noticia de salud. (2020).", "conexiones": [], "color": "#3B82F6" },
+            { "id": "C-24", "fecha": "2021-05-09", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Ataque armado a la Minga Indígena en Cali durante el Paro Nacional", "descripcion": "En Cali, civiles armados atacan a la Minga Indígena durante el Paro Nacional. Los videos del ataque generaron indignación y condenas, evidenciando el racismo y la violencia.", "actoresClave": "Minga Indígena, Civiles armados", "ambito": "Colombia", "fuente": "Noticia de prensa / Denuncia ONG. (2021).", "conexiones": [], "color": "#EF4444" },
+            { "id": "M-18", "fecha": "2021-10-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Territorio", "titulo": "X Congreso Nacional de Pueblos Indígenas (2021) – Justicia Climática", "descripcion": "El X Congreso introduce el discurso de Justicia Climática. La ONIC se declara en crisis climática y exige una moratoria a la explotación de combustibles fósiles.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional de Pueblos Indígenas.", "conexiones": ["M-2"], "color": "#10B981" },
+            { "id": "M-19", "fecha": "2021-10-15", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Salud y Educación", "titulo": "X Congreso 2021 – Exigencia de implementación SISPI", "descripcion": "Ante la falta de avances, el X Congreso mandata posicionar acciones estratégicas para exigir la expedición de la norma SISPI, incluyendo la posibilidad de una Minga Nacional.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (SEIP y SISPI).", "conexiones": ["M-9"], "color": "#3B82F6" },
+            { "id": "M-19b", "fecha": "2021-10-15", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Salud y Educación", "titulo": "X Congreso 2021 – Exigencia de implementación SEIP", "descripcion": "Ante la falta de avances, el X Congreso mandata posicionar acciones estratégicas para exigir la expedición de la norma SEIP, incluyendo la posibilidad de una Minga Nacional.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (SEIP y SISPI).", "conexiones": ["M-9b"], "color": "#F59E0B" },
+            { "id": "M-20", "fecha": "2021-10-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Mujer y Juventud", "titulo": "X Congreso 2021 – Mandatos sobre Mujeres, Niñez y Juventud", "descripcion": "Se exige crear rutas de atención dentro de la justicia propia para casos de violencia contra la mujer, niñez y familia y se ordena acompañamiento jurídico a mujeres indígenas víctimas del conflicto armado.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (Mujer, Familia y Generación).", "conexiones": ["M-15"], "color": "#1F2937" },
+            { "id": "M-21", "fecha": "2021-10-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "X Congreso 2021 – Política Pública de Comunicación (PPCPI)", "descripcion": "El X Congreso orienta la implementación de la Política Pública de Comunicación de y para los Pueblos Indígenas (PPCPI), buscando consolidar un sistema propio de comunicación indígena.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2021). Mandatos del X Congreso Nacional (Comunicación).", "conexiones": [], "color": "#1F2937" },
+            { "id": "C-25", "fecha": "2021-12-30", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "2021: el año más violento para indígenas desde el Acuerdo de Paz", "descripcion": "Informes señalan que 2021 fue el año más violento para los indígenas desde 2016, con decenas de líderes asesinados. Medios nacionales difunden las cifras de la ONIC.", "actoresClave": "ONIC, Medios de comunicación", "ambito": "Colombia", "fuente": "Noticia de prensa. (2021).", "conexiones": [], "color": "#EF4444" },
+            { "id": "N-22", "fecha": "2022-01-01", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Sentencia Corte IDH (Caso Pueblo U’wa vs. Colombia)", "descripcion": "La Corte IDH determinó la responsabilidad internacional de Colombia por violaciones a los derechos del pueblo indígena U’wa, al permitir por décadas actividades extractivas y proyectos en su territorio sin consulta adecuada.", "actoresClave": "Corte Interamericana de Derechos Humanos", "ambito": "Global", "fuente": "Sentencia Corte IDH, Caso 11.754", "conexiones": ["C-5", "C-12", "C-30"], "color": "#10B981" },
+            { "id": "C-26", "fecha": "2022-10-07", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Informe de la ONIC ante la ONU (RPU 2022)", "descripcion": "La ONIC presenta en 2022 un informe sombra en el Examen Periódico Universal (ONU) denunciando la precaria implementación del Acuerdo de Paz y continuas violaciones de DD.HH.", "actoresClave": "ONIC, ONU", "ambito": "Global", "fuente": "Informe ONG / Cobertura internacional. (2022).", "conexiones": [], "color": "#1F2937" },
+            { "id": "C-27", "fecha": "2022-08-07", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Posesión presidencial de Gustavo Petro con simbolismo indígena", "descripcion": "La posesión de Gustavo Petro en 2022 incluyó simbolismo indígena: delegados de varias guardias indígenas participaron en la ceremonia y Petro recibió un bastón de mando ancestral.", "actoresClave": "Gustavo Petro, Guardia Indígena", "ambito": "Colombia", "fuente": "Noticia de prensa / Evento público. (2022).", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-23", "fecha": "2023-05-19", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Ley 2294 de 2023 (Plan Nacional de Desarrollo 2022-2026)", "descripcion": "Adopta el PND 2022-2026 'Colombia Potencia Mundial de la Vida'. Gracias a la incidencia indígena, incluyó 29 artículos con disposiciones en favor de los pueblos indígenas.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 2294 de 2023", "conexiones": ["M-22"], "color": "#1F2937" },
+            { "id": "M-22", "fecha": "2023-05-19", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Economía Propia", "titulo": "Creación del Fondo para el Buen Vivir Indígena – PND 2022–2026", "descripcion": "El PND 2022–2026 incorpora por primera vez el Fondo para el Buen Vivir de los Pueblos Indígenas, para financiar líneas como soberanía alimentaria, Guardia Indígena e institucionalidad propia.", "actoresClave": "Departamento Nacional de Planeación (DNP)", "ambito": "Externo", "fuente": "DNP. (2023). Plan Nacional de Desarrollo 2022–2026 (Ley 2294 de 2023).", "conexiones": ["M-17", "N-23"], "color": "#1F2937" },
+            { "id": "C-28", "fecha": "2023-06-09", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Comunicación", "titulo": "Rescate de niños indígenas perdidos en la selva amazónica", "descripcion": "Cuatro niños del pueblo Uitoto son rescatados tras 40 días perdidos en la selva. La noticia tuvo cobertura mundial al destacarse que sobrevivieron gracias a sus conocimientos ancestrales.", "actoresClave": "Niños Uitoto, Fuerza Pública, Guardia Indígena", "ambito": "Global", "fuente": "Noticia de prensa global. (2023).", "conexiones": [], "color": "#F59E0B" },
+            { "id": "C-29", "fecha": "2023-07-15", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Comunicación", "titulo": "Lanzamiento de la plataforma radial 'Ka'tikunsi'", "descripcion": "La ONIC inaugura en 2023 'Ka'tikunsi', una plataforma radial para difundir derechos territoriales y cultura de los pueblos indígenas.", "actoresClave": "ONIC", "ambito": "Colombia", "fuente": "Medio comunitario / Blog. (2023).", "conexiones": [], "color": "#1F2937" },
+            { "id": "M-23", "fecha": "2023-10-12", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Economía Propia", "titulo": "Lanzamiento de 'Semilla Nativa Indígena' – Marca y Plataforma Comercial", "descripcion": "La ONIC implementa su estrategia de economía propia con el lanzamiento de Semilla Nativa Indígena, una marca comercial y plataforma de e-commerce que agrupa productos indígenas.", "actoresClave": "ONIC", "ambito": "Externo", "fuente": "ONIC. (2024). Semilla Nativa Indígena – Plataforma de Economías Propias (sitio web oficial).", "conexiones": ["M-17"], "color": "#1F2937" },
+            { "id": "M-24", "fecha": "2024-08-02", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Salud Propia", "titulo": "Decreto Ley 968 de 2024 – SISPI (Territorio CRIC)", "descripcion": "El gobierno expide el Decreto 968, que establece las normas para la administración y operatividad del SISPI en el territorio indígena del Consejo Regional Indígena del Cauca (CRIC).", "actoresClave": "Presidencia de la República, CRIC", "ambito": "Externo", "fuente": "Presidencia de la República de Colombia. (2024). Decreto Ley 968 de 2024.", "conexiones": ["M-9"], "color": "#3B82F6" },
+            { "id": "C-30", "fecha": "2024-12-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Comunicación", "titulo": "Fallo de la Corte IDH en el caso U'wa vs. Colombia", "descripcion": "En dic 2024 la Corte IDH falla a favor del pueblo U'wa, declarando al Estado colombiano responsable de violar sus derechos territoriales y culturales. La noticia es ampliamente cubierta por la prensa internacional.", "actoresClave": "Corte IDH, Pueblo U'wa, ONIC", "ambito": "Global", "fuente": "Noticia de prensa internacional. (2024).", "conexiones": ["N-22"], "color": "#10B981" },
+            { "id": "C-31", "fecha": "2025-04-15", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Minga Indígena Nacional 2025", "descripcion": "En abril de 2025 se realiza una nueva Minga Indígena Nacional. Miles de indígenas se movilizan exigiendo cumplimiento de acuerdos, defensa del territorio y denunciando el racismo.", "actoresClave": "Movimiento Indígena", "ambito": "Colombia", "fuente": "Cobertura mediática multiplataforma. (2025).", "conexiones": [], "color": "#EF4444" },
+            { "id": "N-26", "fecha": "2025-04-30", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Normatividad", "titulo": "Decreto 0480 de 2025 (Sistema Indígena de Salud - SISPI)", "descripcion": "Establece e implementa el Sistema Indígena de Salud Propia e Intercultural (SISPI) como política de Estado, reconociendo la medicina tradicional y la autonomía de los pueblos indígenas en la gestión de la salud.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 0480 de 2025", "conexiones": ["C-32"], "color": "#3B82F6" },
+            { "id": "N-27", "fecha": "2025-04-30", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Normatividad", "titulo": "Decreto 0481 de 2025 (Sistema Educativo Indígena Propio - SEIP)", "descripcion": "Reconoce y establece el Sistema Educativo Indígena Propio (SEIP) como política de Estado, garantizando la autonomía educativa de los pueblos indígenas.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 0481 de 2025", "conexiones": ["M-25"], "color": "#F59E0B" },
+            { "id": "M-25", "fecha": "2025-04-30", "temaPrincipal": "Educación y Conocimiento Indígena", "subtema": "Educación Propia", "titulo": "Decreto 481 de 2025 – Establecimiento del SEIP como Política de Estado", "descripcion": "El Gobierno expide el Decreto 481, que reconoce y establece el SEIP como política pública de Estado, garantizando la autonomía educativa indígena.", "actoresClave": "Presidencia de la República", "ambito": "Externo", "fuente": "Presidencia de la República de Colombia. (2025). Decreto 481 de 2025.", "conexiones": ["M-9b", "M-19b", "N-27"], "color": "#F59E0B" },
+            { "id": "C-32", "fecha": "2025-04-30", "temaPrincipal": "Salud y Medicina Tradicional", "subtema": "Comunicación", "titulo": "Decreto 480 de 2025: Sistema Indígena de Salud Propia Intercultural (SISPI)", "descripcion": "El Gobierno expide el Decreto 480 que establece el SISPI como política de Estado. La ONIC lo presenta como un hito de autonomía en salud y la prensa destaca este avance.", "actoresClave": "Gobierno de Colombia, ONIC", "ambito": "Colombia", "fuente": "Noticia de prensa / Decreto oficial. (2025).", "conexiones": ["N-26"], "color": "#3B82F6" },
+            { "id": "N-28", "fecha": "2025-04-30", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 0482 de 2025 (Territorio Indígena Wayúu)", "descripcion": "Establece un régimen transitorio especial para la puesta en funcionamiento del territorio indígena Wayúu en la zona norte extrema de la Alta Guajira, desarrollando disposiciones fiscales y administrativas.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 0482 de 2025", "conexiones": [], "color": "#1F2937" },
+            { "id": "N-29", "fecha": "2025-04-30", "temaPrincipal": "Gobernabilidad y Autonomía", "subtema": "Normatividad", "titulo": "Decreto 0488 de 2025 (Régimen Fiscal y Funcional de Territorios Indígenas)", "descripcion": "Dicta normas sobre el régimen fiscal y el funcionamiento de los Territorios Indígenas, y su coordinación con otras entidades territoriales. Regula competencias sectoriales y uso de recursos.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 0488 de 2025", "conexiones": [], "color": "#1F2937" },
+            { "id": "C-33", "fecha": "2025-06-01", "temaPrincipal": "Derechos Humanos y Paz", "subtema": "Comunicación", "titulo": "Continuas denuncias de violencia contra líderes indígenas", "descripcion": "En 2025 persisten las denuncias de asesinatos y amenazas contra líderes indígenas, con la ONIC como fuente principal. La prensa y las ONG replican estas alarmas.", "actoresClave": "ONIC, Prensa, ONGs", "ambito": "Colombia", "fuente": "Noticia de prensa / Informe DD.HH. (2025).", "conexiones": [], "color": "#EF4444" },
+            { "id": "N-25", "fecha": "2025-06-15", "temaPrincipal": "Territorio y Ambiente", "subtema": "Normatividad", "titulo": "Resolución 1736 de 2025 (Subcuenta de Tierras Indígenas)", "descripcion": "Emitida por la ANT para impartir lineamientos sobre el funcionamiento de la subcuenta especial de tierras destinada a la dotación de tierras a comunidades indígenas, en el marco del Fondo de Tierras.", "actoresClave": "Agencia Nacional de Tierras", "ambito": "Colombia", "fuente": "Resolución 1736 de 2025", "conexiones": [], "color": "#10B981" }
           ]
         };
     </script>
@@ -1300,8 +269,11 @@
             const placeholder = document.getElementById('placeholder');
             const eventDetails = document.getElementById('event-details');
             const themeFiltersContainer = document.getElementById('theme-filters');
+            const searchInput = document.getElementById('search-input');
+            const connectionsToggle = document.getElementById('toggle-connections');
+            const connectionsSvg = document.getElementById('connections-svg');
+            const analyticsContent = document.getElementById('analytics-content');
             
-            // Elementos del panel de detalles
             const detailsTheme = document.getElementById('details-theme');
             const detailsTitle = document.getElementById('details-title');
             const detailsDate = document.getElementById('details-date');
@@ -1312,6 +284,8 @@
 
             let allEvents = [];
             let activeFilters = [];
+            let currentSearchTerm = '';
+            let selectedEventId = null;
 
             const themeColors = {
                 "Territorio y Ambiente": "#10B981",
@@ -1321,15 +295,13 @@
                 "Gobernabilidad y Autonomía": "#1F2937",
             };
 
-            // Cargar datos desde el objeto JSON incrustado
             function initializeTimeline() {
                 try {
                     allEvents = timelineDataObject.eventos;
-                    // Ordenar eventos por fecha
                     allEvents.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
                     setupFilters();
-                    renderTimeline();
-                     // Mostrar el primer evento por defecto en pantallas grandes
+                    addEventListeners();
+                    filterAndRender();
                     if(window.innerWidth >= 1024 && allEvents.length > 0) {
                         showDetails(allEvents[0].id);
                     }
@@ -1339,10 +311,9 @@
                 }
             }
 
-            // Configurar los filtros de temas dinámicamente
             function setupFilters() {
                 const themes = Object.keys(themeColors);
-                activeFilters = [...themes]; // Inicialmente todos los filtros están activos
+                activeFilters = [...themes]; 
 
                 themeFiltersContainer.innerHTML = themes.map(theme => `
                     <div class="flex items-center">
@@ -1353,8 +324,9 @@
                         </label>
                     </div>
                 `).join('');
+            }
 
-                // Añadir event listeners a los checkboxes
+            function addEventListeners() {
                 document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
                     checkbox.addEventListener('change', () => {
                         if (checkbox.checked) {
@@ -1362,30 +334,82 @@
                         } else {
                             activeFilters = activeFilters.filter(f => f !== checkbox.value);
                         }
-                        renderTimeline();
+                        filterAndRender();
                     });
+                });
+
+                searchInput.addEventListener('input', (e) => {
+                    currentSearchTerm = e.target.value.toLowerCase();
+                    filterAndRender();
+                });
+
+                connectionsToggle.addEventListener('change', () => {
+                    if (selectedEventId) {
+                        drawConnections(selectedEventId);
+                    } else {
+                        connectionsSvg.innerHTML = '';
+                    }
                 });
             }
 
-            // Función para renderizar la línea de tiempo
-            function renderTimeline() {
+            function filterAndRender() {
+                const filteredEvents = allEvents.filter(event => {
+                    const themeMatch = activeFilters.includes(event.temaPrincipal);
+                    const searchMatch = currentSearchTerm === '' || 
+                                      event.titulo.toLowerCase().includes(currentSearchTerm) ||
+                                      event.descripcion.toLowerCase().includes(currentSearchTerm);
+                    return themeMatch && searchMatch;
+                });
+                renderTimeline(filteredEvents);
+                updateAnalytics(filteredEvents);
+            }
+
+            function updateAnalytics(filteredEvents) {
+                const total = filteredEvents.length;
+                const themeCounts = activeFilters.reduce((acc, theme) => {
+                    acc[theme] = 0;
+                    return acc;
+                }, {});
+
+                filteredEvents.forEach(event => {
+                    if (themeCounts.hasOwnProperty(event.temaPrincipal)) {
+                        themeCounts[event.temaPrincipal]++;
+                    }
+                });
+
+                let analyticsHtml = `<p class="font-semibold">Mostrando ${total} de ${allEvents.length} eventos.</p><div class="grid grid-cols-2 gap-2 mt-2">`;
+                for (const theme in themeCounts) {
+                    analyticsHtml += `
+                        <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 inline-block mr-2 rounded-sm" style="background-color: ${themeColors[theme]}"></span>
+                                <span class="text-slate-700">${theme}</span>
+                            </div>
+                            <span class="font-bold text-slate-800">${themeCounts[theme]}</span>
+                        </div>
+                    `;
+                }
+                analyticsHtml += '</div>';
+                analyticsContent.innerHTML = analyticsHtml;
+            }
+
+            function renderTimeline(eventsToRender) {
                 timelineContainer.innerHTML = '';
-                let lastYear = null;
-
-                const filteredEvents = allEvents.filter(event => activeFilters.includes(event.temaPrincipal));
-
-                if (filteredEvents.length === 0) {
+                if (eventsToRender.length === 0) {
                     timelineContainer.innerHTML = '<p class="text-slate-500">No hay eventos para los filtros seleccionados.</p>';
-                    placeholder.classList.remove('hidden');
-                    eventDetails.classList.add('hidden');
+                    if(!selectedEventId) {
+                        placeholder.classList.remove('hidden');
+                        eventDetails.classList.add('hidden');
+                    }
                     return;
                 }
 
-                filteredEvents.forEach(item => {
+                let lastYear = null;
+                eventsToRender.forEach(item => {
                     const eventYear = new Date(item.fecha).getFullYear();
                     let yearHtml = '';
                     if (eventYear !== lastYear) {
-                        yearHtml = `<h2 class="text-2xl font-bold text-slate-800 my-4 timeline-year">${eventYear}</h2>`;
+                        yearHtml = `<h2 class="text-2xl font-bold text-slate-800 my-6">${eventYear}</h2>`;
                         lastYear = eventYear;
                     }
                     
@@ -1394,24 +418,70 @@
                         <div class="timeline-item" style="--timeline-color: ${item.color};">
                             <div id="event-${item.id}" class="timeline-card bg-white p-4 rounded-lg shadow-md hover:shadow-xl">
                                 <p class="font-semibold text-md text-slate-800">${item.titulo}</p>
-                                <span class="text-sm text-slate-500">${new Date(item.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                <span class="text-sm text-slate-500">${new Date(item.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
                             </div>
                         </div>
                     `;
                     timelineContainer.innerHTML += cardHtml;
                 });
 
-                // Añadir event listeners a los nuevos elementos creados
-                filteredEvents.forEach(item => {
+                eventsToRender.forEach(item => {
                     const eventElement = document.getElementById(`event-${item.id}`);
                     if (eventElement) {
                         eventElement.addEventListener('click', () => showDetails(item.id));
                     }
                 });
+                
+                // Re-highlight selected card if it's visible
+                if (selectedEventId && document.getElementById(`event-${selectedEventId}`)) {
+                     const item = allEvents.find(e => e.id === selectedEventId);
+                     const selectedCard = document.getElementById(`event-${selectedEventId}`);
+                     selectedCard.classList.add('selected');
+                     selectedCard.style.borderColor = item.color;
+                     selectedCard.style.setProperty('--shadow-color', `${item.color}33`);
+                }
+                
+                // Redraw connections after render
+                setTimeout(() => {
+                    if (selectedEventId) drawConnections(selectedEventId);
+                }, 0);
             }
 
-            // Función para mostrar los detalles de un evento
+            function drawConnections(eventId) {
+                connectionsSvg.innerHTML = '';
+                if (!connectionsToggle.checked) return;
+
+                const originEvent = allEvents.find(e => e.id === eventId);
+                if (!originEvent || !originEvent.conexiones) return;
+
+                const originCard = document.getElementById(`event-${originEvent.id}`);
+                if (!originCard) return;
+
+                const originRect = originCard.getBoundingClientRect();
+                const containerRect = timelineContainer.getBoundingClientRect();
+                const y1 = originRect.top - containerRect.top + (originRect.height / 2);
+
+                originEvent.conexiones.forEach(connId => {
+                    const targetCard = document.getElementById(`event-${connId}`);
+                    if (targetCard) {
+                        const targetEvent = allEvents.find(e => e.id === connId);
+                        const targetRect = targetCard.getBoundingClientRect();
+                        const y2 = targetRect.top - containerRect.top + (targetRect.height / 2);
+                        
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', '20');
+                        line.setAttribute('y1', y1);
+                        line.setAttribute('x2', '20');
+                        line.setAttribute('y2', y2);
+                        line.setAttribute('class', 'connection-line highlighted');
+                        line.style.stroke = originEvent.color;
+                        connectionsSvg.appendChild(line);
+                    }
+                });
+            }
+
             function showDetails(eventId) {
+                selectedEventId = eventId;
                 const item = allEvents.find(e => e.id === eventId);
                 if (!item) return;
 
@@ -1430,17 +500,15 @@
                     const connectionLinks = item.conexiones.map(connId => {
                         const connectedEvent = allEvents.find(e => e.id === connId);
                         return connectedEvent 
-                            ? `<a href="#" onclick="showDetails('${connId}'); return false;" class="text-blue-600 hover:underline">${connectedEvent.titulo} (ID: ${connId})</a>`
+                            ? `<a href="#" onclick="window.showDetails('${connId}'); return false;" class="text-blue-600 hover:underline block mb-1">${connectedEvent.titulo} (ID: ${connId})</a>`
                             : `Evento no encontrado (ID: ${connId})`;
-                    }).join('<br>');
+                    }).join('');
                     connectionsText = `Relacionado con:<br>${connectionLinks}`;
                 }
                 detailsConnections.innerHTML = connectionsText;
 
-
                 eventDetails.classList.remove('hidden');
 
-                // Actualizar la clase 'selected' para el feedback visual
                 document.querySelectorAll('.timeline-card').forEach(card => {
                     card.classList.remove('selected');
                     card.style.borderColor = 'transparent';
@@ -1449,20 +517,19 @@
                 if (selectedCard) {
                     selectedCard.classList.add('selected');
                     selectedCard.style.borderColor = item.color;
+                    selectedCard.style.setProperty('--shadow-color', `${item.color}33`);
                     selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
 
-                // Animación suave al mostrar detalles
                 detailsContainer.style.opacity = 0;
                 setTimeout(() => {
                     detailsContainer.style.opacity = 1;
                 }, 100);
+
+                drawConnections(eventId);
             }
             
-            // Hacer la función showDetails global para que sea accesible desde los enlaces onclick
             window.showDetails = showDetails;
-
-            // Carga inicial de datos
             initializeTimeline();
         });
     </script>
