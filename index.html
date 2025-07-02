@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Línea de Tiempo Analítica e Interactiva | Derechos Pueblos Indígenas en Colombia</title>
+    <title>Línea de Tiempo Analítica v3 | Derechos Pueblos Indígenas en Colombia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -11,10 +11,10 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
         }
-       .timeline-wrapper {
+        .timeline-wrapper {
             position: relative;
         }
-       .timeline-container::before {
+        .timeline-container::before {
             content: '';
             position: absolute;
             top: 0;
@@ -24,12 +24,12 @@
             background: #e2e8f0;
             z-index: 1;
         }
-       .timeline-item {
+        .timeline-item {
             position: relative;
             padding-left: 50px;
             margin-bottom: 40px;
         }
-       .timeline-item::before {
+        .timeline-item::before {
             content: '';
             position: absolute;
             left: 10px;
@@ -42,23 +42,23 @@
             z-index: 3;
             transition: transform 0.2s ease-in-out;
         }
-        .timeline-item:hover::before {
+         .timeline-item:hover::before {
             transform: scale(1.2);
         }
-       .timeline-card {
+        .timeline-card {
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid transparent;
         }
-       .timeline-card.selected {
+        .timeline-card.selected {
             border-color: var(--timeline-color, #3b82f6);
             box-shadow: 0 10px 15px -3px var(--shadow-color, rgba(59, 130, 246, 0.2)), 0 4px 6px -2px var(--shadow-color, rgba(59, 130, 246, 0.1));
         }
-       .filter-checkbox:checked + label {
+        .filter-checkbox:checked + label, .type-filter-checkbox:checked + label {
             opacity: 1;
             font-weight: 600;
         }
-       .filter-checkbox + label {
+        .filter-checkbox + label, .type-filter-checkbox + label {
             opacity: 0.7;
             transition: opacity 0.2s ease-in-out;
         }
@@ -71,12 +71,12 @@
             pointer-events: none;
             z-index: 2;
         }
-       .connection-line {
+        .connection-line {
             stroke-width: 2;
             opacity: 0.6;
             transition: all 0.3s ease;
         }
-       .connection-line.highlighted {
+        .connection-line.highlighted {
             stroke-width: 4;
             opacity: 1;
         }
@@ -87,10 +87,11 @@
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-5xl font-bold text-slate-900">Análisis Interseccional sobre Derechos Indígenas</h1>
-            <p class="text-lg md:text-xl text-slate-600 mt-2">Línea de tiempo multitemática (1991 - 2025)</p>
+            <p class="text-lg md:text-xl text-slate-600 mt-2">Línea de tiempo multitemática (1991 - 2025) - v3.0</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <!-- Contenedor de Controles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-md">
                 <h3 class="text-xl font-bold text-slate-800 mb-4">Controles de Visualización</h3>
                 <div class="space-y-6">
@@ -99,13 +100,15 @@
                     <div>
                         <h4 class="font-semibold text-slate-700 mb-2">Filtrar por Eje Temático:</h4>
                         <div id="theme-filters" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                            </div>
+                            <!-- Theme filters will be inserted here -->
+                        </div>
                     </div>
 
                     <div>
                         <h4 class="font-semibold text-slate-700 mb-2">Filtrar por Tipo de Evento:</h4>
                         <div id="type-filters" class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-sm">
-                            </div>
+                            <!-- Type filters will be inserted here -->
+                        </div>
                     </div>
                     
                     <div class="flex items-center justify-between pt-4 border-t border-slate-200">
@@ -120,7 +123,8 @@
             <div id="analytics-container" class="bg-white p-6 rounded-xl shadow-md">
                  <h3 class="text-xl font-bold text-slate-800 mb-4">Resumen Analítico</h3>
                  <div id="analytics-content" class="text-sm space-y-4">
-                     </div>
+                     <!-- Analytics content will be inserted here -->
+                 </div>
             </div>
         </div>
 
@@ -130,7 +134,8 @@
                 <svg id="connections-svg"></svg>
                 <div class="relative timeline-container">
                     <div id="timeline">
-                        </div>
+                        <!-- Timeline events will be inserted here -->
+                    </div>
                 </div>
             </div>
 
@@ -178,10 +183,11 @@
 
     <script type="application/json" id="data-source">
     {
-      "eventos":, "color": "#1F2937" },
+      "eventos": [
+        { "id": "N-1", "fecha": "1991-03-06", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Ley 21 de 1991 (Convenio 169 de la OIT)", "descripcion": "Aprueba el Convenio 169 de la OIT sobre pueblos indígenas y tribales, incorporándolo al ordenamiento interno. Integra estándares internacionales como la consulta previa y la protección de tierras indígenas al bloque de constitucionalidad colombiano.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 21 de 1991", "conexiones": ["N-2"], "color": "#1F2937" },
         { "id": "N-2", "fecha": "1991-07-04", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Constitución Política de Colombia de 1991", "descripcion": "Establece a Colombia como un Estado pluriétnico y multicultural, reconociendo la autonomía de los pueblos indígenas, su jurisdicción especial y la propiedad colectiva de sus tierras.", "actoresClave": "Asamblea Nacional Constituyente", "ambito": "Colombia", "fuente": "Constitución Política de Colombia de 1991", "conexiones": ["C-1", "N-1", "N-3"], "color": "#1F2937" },
         { "id": "C-1", "fecha": "1991-07-04", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Comunicación", "subtema": "Comunicación", "titulo": "Promulgación de la Constitución Política de 1991", "descripcion": "La nueva Constitución de Colombia reconoce al país como nación pluriétnica y multicultural, garantizando derechos colectivos a los pueblos indígenas (idioma, autonomía territorial, justicia propia, consulta previa), marcando un cambio histórico en su representación legal.", "actoresClave": "Asamblea Nacional Constituyente, Medios de comunicación", "ambito": "Colombia", "fuente": "Diversos medios de prensa. (1991). Cobertura de la promulgación de la Constitución.", "conexiones": ["N-2"], "color": "#1F2937" },
-        { "id": "C-2", "fecha": "1992-10-12", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Movilización", "subtema": "Comunicación", "titulo": "500 años de Resistencia Indígena", "descripcion": "Movilizaciones y pronunciamientos indígenas en Colombia y toda América rechazan la celebración oficial del 'Encuentro de Dos Mundos'. En medios se visibiliza la consigna de '500 años de resistencia' para reivindicar la memoria y denunciar la colonización.", "actoresClave": "Organizaciones indígenas, Movimientos sociales", "ambito": "Latinoamérica", "fuente": "Cobertura mediática de protestas. (1992).", "conexiones":, "color": "#EF4444" },
+        { "id": "C-2", "fecha": "1992-10-12", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Movilización", "subtema": "Comunicación", "titulo": "500 años de Resistencia Indígena", "descripcion": "Movilizaciones y pronunciamientos indígenas en Colombia y toda América rechazan la celebración oficial del 'Encuentro de Dos Mundos'. En medios se visibiliza la consigna de '500 años de resistencia' para reivindicar la memoria y denunciar la colonización.", "actoresClave": "Organizaciones indígenas, Movimientos sociales", "ambito": "Latinoamérica", "fuente": "Cobertura mediática de protestas. (1992).", "conexiones": [], "color": "#EF4444" },
         { "id": "N-3", "fecha": "1993-12-22", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Ley 99 de 1993 (Ley General Ambiental)", "descripcion": "Crea el Ministerio del Medio Ambiente y regula la gestión ambiental; su Artículo 76 exige la consulta previa a comunidades indígenas y negras antes de autorizar proyectos de explotación de recursos naturales en sus territorios.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 99 de 1993", "conexiones": ["N-2"], "color": "#10B981" },
         { "id": "N-4", "fecha": "1994-08-03", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Ley 160 de 1994 (Sistema Nacional de Reforma Agraria)", "descripcion": "Establece el sistema de reforma agraria; el Capítulo XIV encomienda al Estado estudiar, titular y ampliar resguardos indígenas, dotando de tierras a comunidades sin título y saneando territorios ocupados por terceros.", "actoresClave": "Congreso de la República", "ambito": "Colombia", "fuente": "Ley 160 de 1994", "conexiones": ["N-5"], "color": "#10B981" },
         { "id": "N-5", "fecha": "1995-12-07", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Decreto 2164 de 1995 (Reglamentación de resguardos)", "descripcion": "Reglamenta parcialmente la Ley 160/94 en materia de dotación y titulación de tierras a comunidades indígenas para constituir, reestructurar, ampliar y sanear resguardos.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 2164 de 1995", "conexiones": ["N-4"], "color": "#10B981" },
@@ -190,11 +196,11 @@
         { "id": "C-4", "fecha": "1996-08-08", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Comunicación", "subtema": "Comunicación", "titulo": "Creación de la Mesa Permanente de Concertación", "descripcion": "Tras la protesta de 1996, el Gobierno crea por decreto la Mesa Permanente de Concertación entre organizaciones indígenas y el Estado. Este espacio institucionalizado de diálogo es difundido como un avance en la relación Estado-pueblos indígenas.", "actoresClave": "Gobierno de Colombia, Organizaciones Indígenas", "ambito": "Colombia", "fuente": "Decreto 1397 de 1996.", "conexiones": ["C-3", "N-6"], "color": "#1F2937" },
         { "id": "N-7", "fecha": "1997-02-06", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Jurisprudencia", "subtema": "Normatividad", "titulo": "Sentencia SU-039/97 (Caso U’wa - Consulta Previa)", "descripcion": "La Corte falló a favor del pueblo U’wa, reconociendo que se vulneró su derecho fundamental a la consulta previa ante un proyecto petrolero y ordenando realizar la consulta antes de continuar con la explotación.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia SU-039 de 1997", "conexiones": ["C-5"], "color": "#10B981" },
         { "id": "C-5", "fecha": "1997-05-20", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Comunicación", "subtema": "Comunicación", "titulo": "Caso U'wa: Internacionalización de la lucha contra OXY", "descripcion": "La Nación U'wa lleva su batalla contra la petrolera Occidental al plano internacional: en 1997 presenta denuncia ante la CIDH y líderes U'wa realizan giras globales. La amenaza colectiva de suicidio para proteger su tierra obtiene amplio eco mediático mundial.", "actoresClave": "Nación U'wa, CIDH, Occidental Petroleum", "ambito": "Global", "fuente": "Artículo de prensa internacional. (1997).", "conexiones": ["N-7", "C-12", "N-22"], "color": "#10B981" },
-        { "id": "N-8", "fecha": "1998-07-10", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Decreto 1320 de 1998 (Consulta previa en recursos naturales)", "descripcion": "Reglamenta la consulta previa con comunidades indígenas y negras para la explotación de recursos naturales en sus territorios, definiendo procedimientos y etapas para su realización.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 1320 de 1998", "conexiones":, "color": "#1F2937" },
-        { "id": "N-9", "fecha": "2002-10-24", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Jurisprudencia", "subtema": "Normatividad", "titulo": "Sentencia C-891/02 (Consulta en Código de Minas)", "descripcion": "Al resolver una demanda contra el Código de Minas (Ley 685/2001), la Corte afirmó la obligación de consulta previa en la expedición de leyes que afecten directamente a comunidades indígenas, considerando viciada la ley por falta de consulta.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-891 de 2002", "conexiones":, "color": "#1F2937" },
+        { "id": "N-8", "fecha": "1998-07-10", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Decreto 1320 de 1998 (Consulta previa en recursos naturales)", "descripcion": "Reglamenta la consulta previa con comunidades indígenas y negras para la explotación de recursos naturales en sus territorios, definiendo procedimientos y etapas para su realización.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto 1320 de 1998", "conexiones": [], "color": "#1F2937" },
+        { "id": "N-9", "fecha": "2002-10-24", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Jurisprudencia", "subtema": "Normatividad", "titulo": "Sentencia C-891/02 (Consulta en Código de Minas)", "descripcion": "Al resolver una demanda contra el Código de Minas (Ley 685/2001), la Corte afirmó la obligación de consulta previa en la expedición de leyes que afecten directamente a comunidades indígenas, considerando viciada la ley por falta de consulta.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-891 de 2002", "conexiones": [], "color": "#1F2937" },
         { "id": "M-1", "fecha": "2007-12-15", "temaPrincipal": "Gobernabilidad y Autonomía", "tipo_evento": "Mandato ONIC", "subtema": "Gobierno Propio", "titulo": "VII Congreso Nacional de Pueblos Indígenas (ONIC)", "descripcion": "Decisión histórica de transformar la ONIC en Autoridad Nacional de Gobierno Indígena. Mandato General Art.20-21 rompe con figura de ONG gremial y adopta un modelo de gobierno autónomo propio.", "actoresClave": "ONIC", "ambito": "Interno", "fuente": "ONIC. (2007). Mandato General - VII Congreso Nacional de Pueblos Indígenas.", "conexiones": ["M-6"], "color": "#1F2937" },
-        { "id": "N-10", "fecha": "2008-01-29", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Jurisprudencia", "subtema": "Normatividad", "titulo": "Sentencia C-030/08 (Ley Forestal Inexequible)", "descripcion": "Declara inexequible la Ley 1021 de 2006 (Ley General Forestal) por haberse expedido sin consulta previa a comunidades indígenas y afrodescendientes, dado que dicha ley afectaba sus derechos territoriales.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-030 de 2008", "conexiones":, "color": "#10B981" },
-        { "id": "C-6", "fecha": "2008-10-12", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Movilización", "subtema": "Comunicación", "titulo": "Minga Indígena Nacional (Protestas masivas de 2008)", "descripcion": "Más de 10.000 indígenas marchan desde el Cauca hasta Cali en 2008, exigiendo territorio, cumplimiento de acuerdos y fin de la violencia. La 'Minga de Resistencia' recibe gran cobertura mediática nacional.", "actoresClave": "Movimiento indígena", "ambito": "Colombia", "fuente": "Artículo de prensa / Cobertura TV. (2008).", "conexiones":, "color": "#EF4444" },
+        { "id": "N-10", "fecha": "2008-01-29", "temaPrincipal": "Territorio y Ambiente", "tipo_evento": "Jurisprudencia", "subtema": "Normatividad", "titulo": "Sentencia C-030/08 (Ley Forestal Inexequible)", "descripcion": "Declara inexequible la Ley 1021 de 2006 (Ley General Forestal) por haberse expedido sin consulta previa a comunidades indígenas y afrodescendientes, dado que dicha ley afectaba sus derechos territoriales.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Sentencia C-030 de 2008", "conexiones": [], "color": "#10B981" },
+        { "id": "C-6", "fecha": "2008-10-12", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Movilización", "subtema": "Comunicación", "titulo": "Minga Indígena Nacional (Protestas masivas de 2008)", "descripcion": "Más de 10.000 indígenas marchan desde el Cauca hasta Cali en 2008, exigiendo territorio, cumplimiento de acuerdos y fin de la violencia. La 'Minga de Resistencia' recibe gran cobertura mediática nacional.", "actoresClave": "Movimiento indígena", "ambito": "Colombia", "fuente": "Artículo de prensa / Cobertura TV. (2008).", "conexiones": [], "color": "#EF4444" },
         { "id": "N-11", "fecha": "2009-01-26", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Jurisprudencia", "subtema": "Normatividad", "titulo": "Auto 004 de 2009 (Pueblos en Riesgo de Extinción)", "descripcion": "En el marco del estado de cosas inconstitucional por desplazamiento (Sentencia T-025/04), se identifican 34 pueblos indígenas en alto riesgo de exterminio físico y cultural por el conflicto armado.", "actoresClave": "Corte Constitucional", "ambito": "Colombia", "fuente": "Auto 004 de 2009", "conexiones": ["C-7", "C-11", "N-14"], "color": "#EF4444" },
         { "id": "C-7", "fecha": "2009-01-26", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Comunicación", "subtema": "Comunicación", "titulo": "Corte Constitucional alerta sobre riesgo de exterminio indígena", "descripcion": "La Corte Constitucional emite el Auto 004/2009 identificando 34 pueblos indígenas en peligro de extinción física y cultural por el conflicto armado. Los medios amplifican la alarma.", "actoresClave": "Corte Constitucional, Medios de comunicación", "ambito": "Colombia", "fuente": "Noticia de prensa / Informe judicial. (2009).", "conexiones": ["N-11", "C-11"], "color": "#EF4444" },
         { "id": "N-14", "fecha": "2011-12-09", "temaPrincipal": "Derechos Humanos y Paz", "tipo_evento": "Norma", "subtema": "Normatividad", "titulo": "Decreto Ley 4633 de 2011 (Víctimas Indígenas)", "descripcion": "Establece medidas de asistencia, atención, reparación integral y restitución de derechos territoriales para las comunidades indígenas víctimas del conflicto armado, reconociendo al 'territorio' como víctima colectiva.", "actoresClave": "Presidencia de la República", "ambito": "Colombia", "fuente": "Decreto Ley 4633 de 2011", "conexiones": ["N-11"], "color": "#EF4444" },
@@ -229,9 +235,9 @@
             const detailsSource = document.getElementById('details-source');
             const detailsConnections = document.getElementById('details-connections');
 
-            let allEvents =;
-            let activeThemeFilters =;
-            let activeTypeFilters =;
+            let allEvents = [];
+            let activeThemeFilters = [];
+            let activeTypeFilters = [];
             let currentSearchTerm = '';
             let selectedEventId = null;
 
@@ -257,7 +263,7 @@
                     filterAndRender();
                     
                     if (window.innerWidth >= 1024 && allEvents.length > 0) {
-                        showDetails(allEvents.id);
+                        showDetails(allEvents[0].id);
                     }
                 } catch (error) {
                     console.error("No se pudieron inicializar los datos de la línea de tiempo:", error);
@@ -281,8 +287,8 @@
             }
 
             function setupTypeFilters() {
-                const eventTypes =.sort();
-                activeTypeFilters =;
+                const eventTypes = [...new Set(allEvents.map(event => event.tipo_evento))].sort();
+                activeTypeFilters = [...eventTypes];
 
                 typeFiltersContainer.innerHTML = eventTypes.map(type => `
                     <div class="flex items-center">
@@ -295,14 +301,14 @@
             function addEventListeners() {
                 document.querySelectorAll('.theme-filter-checkbox').forEach(checkbox => {
                     checkbox.addEventListener('change', () => {
-                        activeThemeFilters =.map(cb => cb.value);
+                        activeThemeFilters = [...document.querySelectorAll('.theme-filter-checkbox:checked')].map(cb => cb.value);
                         filterAndRender();
                     });
                 });
 
                 document.querySelectorAll('.type-filter-checkbox').forEach(checkbox => {
                     checkbox.addEventListener('change', () => {
-                        activeTypeFilters =.map(cb => cb.value);
+                        activeTypeFilters = [...document.querySelectorAll('.type-filter-checkbox:checked')].map(cb => cb.value);
                         filterAndRender();
                     });
                 });
@@ -325,9 +331,7 @@
                 const filteredEvents = allEvents.filter(event => {
                     const themeMatch = activeThemeFilters.includes(event.temaPrincipal);
                     const typeMatch = activeTypeFilters.includes(event.tipo_evento);
-                    const searchMatch = currentSearchTerm === '' |
-
-| 
+                    const searchMatch = currentSearchTerm === '' ||
                                       event.titulo.toLowerCase().includes(currentSearchTerm) ||
                                       event.descripcion.toLowerCase().includes(currentSearchTerm) ||
                                       event.actoresClave.toLowerCase().includes(currentSearchTerm);
@@ -343,7 +347,7 @@
                 Object.keys(themeColors).forEach(theme => themeCounts[theme] = 0);
 
                 const typeCounts = {};
-               .forEach(type => typeCounts[type] = 0);
+                [...new Set(allEvents.map(event => event.tipo_evento))].forEach(type => typeCounts[type] = 0);
 
                 filteredEvents.forEach(event => {
                     if (themeCounts.hasOwnProperty(event.temaPrincipal)) {
@@ -396,7 +400,7 @@
                     const eventDate = new Date(item.fecha + 'T00:00:00');
                     const eventYear = eventDate.getFullYear();
                     let yearHtml = '';
-                    if (eventYear!== lastYear) {
+                    if (eventYear !== lastYear) {
                         yearHtml = `<h2 class="text-2xl font-bold text-slate-800 my-6 pl-12">${eventYear}</h2>`;
                         lastYear = eventYear;
                     }
@@ -452,9 +456,7 @@
                 if (!connectionsToggle.checked) return;
 
                 const originEvent = allEvents.find(e => e.id === eventId);
-                if (!originEvent ||!originEvent.conexiones |
-
-| originEvent.conexiones.length === 0) return;
+                if (!originEvent || !originEvent.conexiones || originEvent.conexiones.length === 0) return;
 
                 const originCard = document.getElementById(`event-${originEvent.id}`);
                 if (!originCard) return;
